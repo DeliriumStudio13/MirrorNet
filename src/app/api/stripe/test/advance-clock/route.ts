@@ -1,20 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { headers } from 'next/headers';
-import serviceAccount from '@/config/serviceAccount.json';
-
-// Initialize Firebase Admin if it hasn't been initialized
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
-}
-
-const auth = getAuth();
-const db = getFirestore();
+import { auth, db } from '@/lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
