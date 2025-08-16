@@ -1,31 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe, PREMIUM_PRICE_ID } from '@/lib/stripe';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { auth, db } from '@/lib/firebase-admin';
 import { headers } from 'next/headers';
-import serviceAccount from '@/config/serviceAccount.json';
-
-// Initialize Firebase Admin if it hasn't been initialized
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
-}
-
-const auth = getAuth();
-const db = getFirestore();
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
-}
 
 export async function POST() {
   console.log('Received checkout session creation request');
@@ -45,7 +21,6 @@ export async function POST() {
           status: 401,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -64,7 +39,6 @@ export async function POST() {
           status: 401,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -72,14 +46,6 @@ export async function POST() {
 
     const userId = decodedToken.uid;
     console.log('Token verified for user:', userId);
-
-    // Create a test clock for this customer
-    console.log('Creating test clock...');
-    const testClock = await stripe.testHelpers.testClocks.create({
-      frozen_time: Math.floor(Date.now() / 1000),
-      name: `Test Clock for ${userId}`,
-    });
-    console.log('Created test clock:', testClock.id);
 
     // 3. Get user data
     console.log('Fetching user data from Firestore...');
@@ -94,7 +60,6 @@ export async function POST() {
           status: 404,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -104,6 +69,21 @@ export async function POST() {
     let stripeCustomerId = userData.stripeCustomerId;
     console.log('Existing Stripe customer ID:', stripeCustomerId);
 
+    // If we have a stripeCustomerId, verify it exists in Stripe
+    if (stripeCustomerId) {
+      try {
+        await stripe.customers.retrieve(stripeCustomerId);
+        console.log('Verified existing Stripe customer:', stripeCustomerId);
+      } catch (error) {
+        if (error.code === 'resource_missing') {
+          console.log('Stored Stripe customer not found, creating new one');
+          stripeCustomerId = null; // Reset so we create a new one
+        } else {
+          throw error; // Re-throw if it's a different error
+        }
+      }
+    }
+
     // Create new Stripe customer if needed
     if (!stripeCustomerId) {
       console.log('Creating new Stripe customer...');
@@ -112,18 +92,16 @@ export async function POST() {
           email: userData.email,
           metadata: {
             userId: userId
-          },
-          test_clock: testClock.id // Associate customer with test clock
+          }
         });
         stripeCustomerId = customer.id;
         console.log('Created new Stripe customer:', stripeCustomerId);
 
-        // Update user with new Stripe customer ID and test clock ID
+        // Update user with new Stripe customer ID
         await db.collection('users').doc(userId).update({
-          stripeCustomerId: stripeCustomerId,
-          stripeTestClockId: testClock.id // Store test clock ID for future use
+          stripeCustomerId: stripeCustomerId
         });
-        console.log('Updated user with new Stripe customer ID and test clock ID');
+        console.log('Updated user with new Stripe customer ID');
       } catch (error) {
         console.error('Error creating Stripe customer:', error);
         return new NextResponse(
@@ -135,7 +113,6 @@ export async function POST() {
             status: 500,
             headers: {
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
             },
           }
         );
@@ -152,7 +129,6 @@ export async function POST() {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -167,7 +143,6 @@ export async function POST() {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -187,15 +162,13 @@ export async function POST() {
         success_url: `${baseUrl}/dashboard/premium?checkout=success`,
         cancel_url: `${baseUrl}/dashboard/premium?checkout=canceled`,
         metadata: {
-          userId: userId,
-          testClockId: testClock.id
+          userId: userId
         },
         subscription_data: {
           trial_period_days: 30,
           metadata: {
             userId: userId,
-            plan: 'monthly_trial',
-            testClockId: testClock.id
+            plan: 'monthly_trial'
           }
         },
         allow_promotion_codes: true,
@@ -216,7 +189,6 @@ export async function POST() {
             status: 500,
             headers: {
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
             },
           }
         );
@@ -226,15 +198,11 @@ export async function POST() {
       console.log('Checkout URL:', session.url);
       
       return new NextResponse(
-        JSON.stringify({ 
-          url: session.url,
-          testClockId: testClock.id // Return test clock ID for testing
-        }),
+        JSON.stringify({ url: session.url }),
         {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -249,7 +217,6 @@ export async function POST() {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
           },
         }
       );
@@ -265,7 +232,6 @@ export async function POST() {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         },
       }
     );

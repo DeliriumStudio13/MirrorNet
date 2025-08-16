@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { db, auth } from '@/lib/firebase-admin';
 import Stripe from 'stripe';
-import serviceAccount from '@/config/serviceAccount.json';
-
-// Initialize Firebase Admin if it hasn't been initialized
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
-}
-
-const db = getFirestore();
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,7 +21,6 @@ export async function POST(req: NextRequest) {
     let event: Stripe.Event;
 
     try {
-      // Verify the webhook signature
       event = stripe.webhooks.constructEvent(
         body,
         signature,
@@ -45,9 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('Received webhook event:', event.type);
-    console.log('Event data:', JSON.stringify(event.data.object, null, 2));
 
-    // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -110,41 +95,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       // Try to get user by customer ID
       const customer = await stripe.customers.retrieve(session.customer as string);
       if (customer.metadata?.userId) {
-        await updateUserPremiumStatus(customer.metadata.userId, session.customer as string, session.subscription as string);
-      } else {
-        console.error('No userId found in customer metadata');
+        await updateUserPremiumStatus(customer.metadata.userId, session.customer as string);
       }
       return;
     }
 
-    await updateUserPremiumStatus(userId, session.customer as string, session.subscription as string);
+    await updateUserPremiumStatus(userId, session.customer as string);
   } catch (error) {
     console.error('Error handling checkout completed:', error);
   }
 }
 
-async function updateUserPremiumStatus(userId: string, stripeCustomerId: string, subscriptionId: string) {
-  console.log(`Updating premium status for user ${userId}`);
-  console.log(`Customer ID: ${stripeCustomerId}`);
-  console.log(`Subscription ID: ${subscriptionId}`);
-
+async function updateUserPremiumStatus(userId: string, stripeCustomerId: string) {
   const userRef = db.collection('users').doc(userId);
-  
-  try {
-    await userRef.update({
-      isPremium: true,
-      stripeCustomerId: stripeCustomerId,
-      stripeSubscriptionId: subscriptionId,
-      premiumActivatedAt: new Date(),
-      subscriptionStatus: 'active',
-      premiumTokens: 3,  // Grant 3 premium tokens on upgrade
-      premiumPlan: 'monthly_trial'
-    });
-    console.log(`Successfully updated user ${userId} to premium status`);
-  } catch (error) {
-    console.error(`Failed to update user ${userId}:`, error);
-    throw error; // Re-throw to ensure the error is logged in the webhook handler
-  }
+  await userRef.update({
+    isPremium: true,
+    stripeCustomerId: stripeCustomerId,
+    premiumActivatedAt: new Date(),
+    subscriptionStatus: 'active',
+    premiumTokens: 3  // Grant 3 premium tokens on upgrade
+  });
+  console.log(`User ${userId} upgraded to premium`);
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
@@ -175,8 +146,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       stripeSubscriptionId: subscription.id,
       subscriptionStatus: subscription.status,
       premiumActivatedAt: isPremiumStatus ? new Date() : null,
-      premiumTokens: isPremiumStatus && currentTokens === 0 ? 3 : currentTokens,
-      premiumPlan: subscription.items.data[0]?.price?.nickname || 'monthly_trial'
+      // Only grant tokens if they don't have any and are becoming premium
+      premiumTokens: isPremiumStatus && currentTokens === 0 ? 3 : currentTokens
     });
 
     console.log(`Subscription ${subscription.id} created for user ${userId}`);
@@ -214,11 +185,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const userRef = db.collection('users').doc(userId);
     await userRef.update({
       isPremium: subscription.status === 'active' || subscription.status === 'trialing',
-      subscriptionStatus: subscription.status,
-      premiumPlan: subscription.items.data[0]?.price?.nickname || 'monthly_trial'
+      subscriptionStatus: subscription.status
     });
 
-    console.log(`Subscription ${subscription.id} updated for user ${userId}`);
+    console.log(`Subscription ${subscription.id} updated`);
   } catch (error) {
     console.error('Error handling subscription updated:', error);
   }
