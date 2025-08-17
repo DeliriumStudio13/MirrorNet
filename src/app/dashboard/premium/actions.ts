@@ -83,7 +83,8 @@ export async function createPortalSession() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ firebaseToken: token }),
+      // No need to send token in body since it's in Authorization header
+      body: JSON.stringify({}),
     });
 
     console.log('Response received:', {
@@ -100,7 +101,7 @@ export async function createPortalSession() {
       data = JSON.parse(responseText);
     } catch (e) {
       console.error('Failed to parse response as JSON:', e);
-      throw new Error('Invalid response format from server');
+      throw new Error(`Invalid response format from server: ${responseText}`);
     }
 
     if (!response.ok) {
@@ -108,7 +109,7 @@ export async function createPortalSession() {
         status: response.status,
         data: data
       });
-      throw new Error(data.error || `Failed to create portal session: ${response.status}`);
+      throw new Error(data.error || data.details || `Failed to create portal session: ${response.status}`);
     }
 
     if (!data.url) {
@@ -118,12 +119,13 @@ export async function createPortalSession() {
 
     console.log('Redirecting to portal:', data.url);
     window.location.assign(data.url);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Portal error details:', {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      response: error.response // If available from server
     });
-    throw error;
+    throw new Error(`Portal error: ${error.message}`);
   }
 }

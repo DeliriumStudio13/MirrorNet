@@ -36,5 +36,6 @@ if (!getApps().length) {
   }
 }
 
-export const db = getFirestore();
-export const auth = getAuth();
+// Use consistent naming across the app
+export const adminDb = getFirestore();
+export const adminAuth = getAuth();

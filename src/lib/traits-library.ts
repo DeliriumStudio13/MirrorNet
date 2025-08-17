@@ -14,6 +14,17 @@ export interface CircleTemplate {
   isPremiumOnly: boolean;
 }
 
+export interface StandardCircle {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  defaultTraits: string[];
+  alternativeTraits: string[];
+  isPremiumOnly?: boolean;
+  isBeta?: boolean;
+}
+
 // All available traits organized by circle
 export const traits: Record<string, Trait> = {
   // Friends Circle Traits
@@ -477,7 +488,7 @@ export const traits: Record<string, Trait> = {
 };
 
 // Standard circles
-export const standardCircles = {
+export const standardCircles: Record<string, StandardCircle> = {
   friends: {
     id: 'friends',
     name: 'Friends',
@@ -505,7 +516,7 @@ export const standardCircles = {
   family: {
     id: 'family',
     name: 'Family',
-    icon: '❤️',
+    icon: '👨‍👩‍👧‍👦',
     description: 'Feedback from family members',
     defaultTraits: ['caring', 'respectfulFamily', 'dependableFamily', 'loving', 'protective'],
     alternativeTraits: []
@@ -516,7 +527,8 @@ export const standardCircles = {
     icon: '🌱',
     description: 'Environmental consciousness rating',
     defaultTraits: ['energy', 'waste', 'transport', 'consumption', 'water'],
-    alternativeTraits: []
+    alternativeTraits: [],
+    isBeta: true
   },
   attraction: {
     id: 'attraction',

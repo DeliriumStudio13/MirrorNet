@@ -10,7 +10,7 @@ import { CustomCircle, AppUser } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar } from '@/components/ui/avatar';
-import { ArrowLeft, Users, Crown } from 'lucide-react';
+import { ArrowLeft, Users, Crown, CheckCircle } from 'lucide-react';
 
 interface CircleMember {
   uid: string;
@@ -18,6 +18,7 @@ interface CircleMember {
   lastName: string;
   avatarUrl?: string;
   isPremium: boolean;
+  hasBeenRated?: boolean;
 }
 
 export default function SelectMemberPage() {
@@ -148,7 +149,22 @@ export default function SelectMemberPage() {
           return;
         }
 
-        setMembers(circleMembers);
+        // Check which members have already been rated by this user
+        const ratingsQuery = query(
+          collection(db, 'ratings'),
+          where('raterUid', '==', user.uid),
+          where('circleId', '==', circleId)
+        );
+        const ratingsSnapshot = await getDocs(ratingsQuery);
+        const ratedMemberIds = new Set(ratingsSnapshot.docs.map(doc => doc.data().ratedUid));
+
+        // Add hasBeenRated property to each member
+        const membersWithRatingStatus = circleMembers.map(member => ({
+          ...member,
+          hasBeenRated: ratedMemberIds.has(member.uid)
+        }));
+
+        setMembers(membersWithRatingStatus);
       } catch (err) {
         console.error('Error loading members:', err);
         setError('Failed to load circle members.');
@@ -242,12 +258,21 @@ export default function SelectMemberPage() {
                       <Crown className="h-3 w-3 text-yellow-400" />
                     </div>
                   )}
+                  {member.hasBeenRated && (
+                    <div className="absolute -bottom-1 -right-1 bg-green-500/20 border border-green-500/30 rounded-full p-1">
+                      <CheckCircle className="h-3 w-3 text-green-400" />
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-lg font-bold text-white mb-1">
                   {member.firstName} {member.lastName}
                 </h3>
-                <p className="text-purple-400 text-sm font-medium group-hover:text-purple-300 transition-colors">
-                  Click to Rate →
+                <p className={`text-sm font-medium transition-colors ${
+                  member.hasBeenRated 
+                    ? 'text-green-400 group-hover:text-green-300' 
+                    : 'text-purple-400 group-hover:text-purple-300'
+                }`}>
+                  {member.hasBeenRated ? 'Click to Re-rate →' : 'Click to Rate →'}
                 </p>
               </div>
             </Link>

@@ -77,7 +77,21 @@ export function SignUpForm() {
 
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during sign up');
+      if (err instanceof Error) {
+        if (err.code === 'auth/email-already-in-use') {
+          setError('An account with this email already exists. Try signing in instead.');
+        } else if (err.code === 'auth/weak-password') {
+          setError('Password should be at least 6 characters long.');
+        } else if (err.code === 'auth/invalid-email') {
+          setError('Please enter a valid email address.');
+        } else if (err.code === 'auth/too-many-requests') {
+          setError('Too many attempts. Please wait a moment before trying again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('An error occurred during sign up. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,14 +100,14 @@ export function SignUpForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 relative">
       {error && (
-        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-          <p className="text-red-500 text-sm">{error}</p>
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          {error}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-[#e1e1e6] mb-1.5">
+          <label htmlFor="firstName" className="block text-sm font-medium text-white mb-1.5">
             First Name
           </label>
           <input
@@ -102,14 +116,14 @@ export function SignUpForm() {
             id="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full h-10 px-3 bg-[#2a2b2e] border border-[#3b3b3e] rounded-lg text-white placeholder-[#a1a1aa] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-colors text-sm relative z-20"
+            className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
             placeholder="Enter your first name"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-[#e1e1e6] mb-1.5">
+          <label htmlFor="lastName" className="block text-sm font-medium text-white mb-1.5">
             Last Name
           </label>
           <input
@@ -118,7 +132,7 @@ export function SignUpForm() {
             id="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full h-10 px-3 bg-[#2a2b2e] border border-[#3b3b3e] rounded-lg text-white placeholder-[#a1a1aa] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-colors text-sm relative z-20"
+            className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
             placeholder="Enter your last name"
             required
           />
@@ -126,7 +140,7 @@ export function SignUpForm() {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-[#e1e1e6] mb-1.5">
+        <label htmlFor="email" className="block text-sm font-medium text-white mb-1.5">
           Email
         </label>
         <input
@@ -135,14 +149,17 @@ export function SignUpForm() {
           id="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full h-10 px-3 bg-[#2a2b2e] border border-[#3b3b3e] rounded-lg text-white placeholder-[#a1a1aa] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-colors text-sm relative z-20"
+          className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
           placeholder="Enter your email"
           required
         />
+        <p className="text-xs text-gray-400 mt-1">
+          We'll send a verification email to this address
+        </p>
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-[#e1e1e6] mb-1.5">
+        <label htmlFor="password" className="block text-sm font-medium text-white mb-1.5">
           Password
         </label>
         <input
@@ -151,26 +168,29 @@ export function SignUpForm() {
           id="password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full h-10 px-3 bg-[#2a2b2e] border border-[#3b3b3e] rounded-lg text-white placeholder-[#a1a1aa] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-colors text-sm relative z-20"
-          placeholder="Create a password"
+          className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
+          placeholder="Create a password (min 6 characters)"
           required
         />
+        <p className="text-xs text-gray-400 mt-1">
+          Password must be at least 6 characters long
+        </p>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full h-10 bg-gradient-to-r from-[#3b82f6] to-[#60a5fa] text-white rounded-lg font-medium hover:from-[#2563eb] hover:to-[#3b82f6] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm relative z-20"
+        className="w-full h-10 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm relative z-20"
       >
         {loading ? 'Creating Account...' : 'Create Account'}
       </button>
 
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#3b3b3e]"></div>
+          <div className="w-full border-t border-gray-700"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-[#1a1b1e] text-[#71717a]">Or continue with</span>
+          <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
         </div>
       </div>
 

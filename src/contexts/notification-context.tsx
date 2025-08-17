@@ -40,20 +40,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     });
     unsubscribers.push(invitationsUnsubscribe);
 
-    // Listen for reveal requests (premium users only)
-    if (user.isPremium) {
-      const revealRequestsQuery = query(
-        collection(db, 'revealRequests'),
-        where('toUid', '==', user.uid),
-        where('status', '==', 'pending')
-      );
+    // Listen for reveal requests (all users can receive them)
+    const revealRequestsQuery = query(
+      collection(db, 'revealRequests'),
+      where('toUid', '==', user.uid),
+      where('status', '==', 'pending')
+    );
 
-      const revealRequestsUnsubscribe = onSnapshot(revealRequestsQuery, (snapshot) => {
-        const revealCount = snapshot.size;
-        updateTotalCount(revealCount, 'reveals');
-      });
-      unsubscribers.push(revealRequestsUnsubscribe);
-    }
+    const revealRequestsUnsubscribe = onSnapshot(revealRequestsQuery, (snapshot) => {
+      const revealCount = snapshot.size;
+      updateTotalCount(revealCount, 'reveals');
+    });
+    unsubscribers.push(revealRequestsUnsubscribe);
 
     // Listen for family goal notifications
     const familyGoalsQuery = query(
@@ -72,7 +70,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return () => {
       unsubscribers.forEach(unsubscribe => unsubscribe());
     };
-  }, [user?.uid, user?.isPremium]);
+  }, [user?.uid]);
 
   const [counts, setCounts] = useState({
     invitations: 0,

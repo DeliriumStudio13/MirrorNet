@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { db, auth } from '@/lib/firebase-admin';
+import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { rateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
+import { trackError, trackBusinessEvent, withPerformanceTracking, logInfo } from '@/lib/monitoring';
 import Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
   try {
+    // Apply generous rate limiting for webhooks (100 requests per minute)
+    try {
+      await rateLimit(req, 100, 60 * 1000);
+    } catch (rateLimitError) {
+      console.log('Rate limit exceeded for webhook:', rateLimitError.message);
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': '60',
+            ...getRateLimitHeaders(req, 100),
+          }
+        }
+      );
+    }
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
 
@@ -31,7 +49,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    console.log('Received webhook event:', event.type);
+    logInfo('Received webhook event', { eventType: event.type, eventId: event.id });
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -84,30 +102,50 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  try {
-    console.log('Processing checkout completed:', session.id);
-    
-    // Get userId from metadata
-    const userId = session.metadata?.userId;
-    if (!userId) {
-      console.error('No userId found in session metadata');
-      // Try to get user by customer ID
-      const customer = await stripe.customers.retrieve(session.customer as string);
-      if (customer.metadata?.userId) {
-        await updateUserPremiumStatus(customer.metadata.userId, session.customer as string);
+const handleCheckoutCompleted = withPerformanceTracking(
+  'stripe.checkout.completed',
+  async (session: Stripe.Checkout.Session) => {
+    try {
+      logInfo('Processing checkout completed', { sessionId: session.id });
+      
+      // Get userId from metadata
+      const userId = session.metadata?.userId;
+      if (!userId) {
+        trackError(new Error('No userId found in session metadata'), {
+          action: 'checkout_completed',
+          additionalData: { sessionId: session.id }
+        });
+        // Try to get user by customer ID
+        const customer = await stripe.customers.retrieve(session.customer as string);
+        if (customer.metadata?.userId) {
+          await updateUserPremiumStatus(customer.metadata.userId, session.customer as string);
+        }
+        return;
       }
-      return;
-    }
 
-    await updateUserPremiumStatus(userId, session.customer as string);
-  } catch (error) {
-    console.error('Error handling checkout completed:', error);
+      await updateUserPremiumStatus(userId, session.customer as string);
+      
+      // Track successful business event
+      trackBusinessEvent('premium_subscription_started', {
+        userId,
+        sessionId: session.id,
+        customerId: session.customer,
+        amount: session.amount_total,
+        currency: session.currency
+      });
+      
+    } catch (error) {
+      trackError(error as Error, {
+        action: 'checkout_completed',
+        additionalData: { sessionId: session.id }
+      });
+      throw error; // Re-throw to maintain error handling
+    }
   }
-}
+);
 
 async function updateUserPremiumStatus(userId: string, stripeCustomerId: string) {
-  const userRef = db.collection('users').doc(userId);
+  const userRef = adminDb.collection('users').doc(userId);
   await userRef.update({
     isPremium: true,
     stripeCustomerId: stripeCustomerId,
@@ -134,7 +172,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       return;
     }
 
-    const userRef = db.collection('users').doc(userId);
+    const userRef = adminDb.collection('users').doc(userId);
     const isPremiumStatus = subscription.status === 'active' || subscription.status === 'trialing';
     
     // Get current user data to check if they already have tokens
@@ -169,7 +207,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
     if (!userId) {
       // If still no userId, try to find user by subscription ID
-      const usersSnapshot = await db.collection('users')
+      const usersSnapshot = await adminDb.collection('users')
         .where('stripeSubscriptionId', '==', subscription.id)
         .limit(1)
         .get();
@@ -182,7 +220,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       userId = usersSnapshot.docs[0].id;
     }
 
-    const userRef = db.collection('users').doc(userId);
+    const userRef = adminDb.collection('users').doc(userId);
     await userRef.update({
       isPremium: subscription.status === 'active' || subscription.status === 'trialing',
       subscriptionStatus: subscription.status
@@ -194,33 +232,59 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  try {
-    console.log('Processing subscription deleted:', subscription.id);
-    
-    // Find user by subscription ID
-    const usersSnapshot = await db.collection('users')
-      .where('stripeSubscriptionId', '==', subscription.id)
-      .limit(1)
-      .get();
-    
-    if (usersSnapshot.empty) {
-      console.error('No user found for deleted subscription:', subscription.id);
-      return;
-    }
-    
-    const userDoc = usersSnapshot.docs[0];
-    await userDoc.ref.update({
-      isPremium: false,
-      subscriptionStatus: 'canceled',
-      premiumCanceledAt: new Date()
-    });
+const handleSubscriptionDeleted = withPerformanceTracking(
+  'stripe.subscription.deleted',
+  async (subscription: Stripe.Subscription) => {
+    try {
+      logInfo('Processing subscription deleted', { subscriptionId: subscription.id });
+      
+      // Find user by subscription ID
+      const usersSnapshot = await adminDb.collection('users')
+        .where('stripeSubscriptionId', '==', subscription.id)
+        .limit(1)
+        .get();
+      
+      if (usersSnapshot.empty) {
+        trackError(new Error('No user found for deleted subscription'), {
+          action: 'subscription_deleted',
+          additionalData: { subscriptionId: subscription.id }
+        });
+        return;
+      }
+      
+      const userDoc = usersSnapshot.docs[0];
+      const userId = userDoc.id;
+      
+      await userDoc.ref.update({
+        isPremium: false,
+        subscriptionStatus: 'canceled',
+        premiumCanceledAt: new Date(),
+        premiumPlan: null,
+        premiumTokens: 0 // Reset tokens on cancellation
+      });
 
-    console.log(`Subscription ${subscription.id} canceled for user ${userDoc.id}`);
-  } catch (error) {
-    console.error('Error handling subscription deleted:', error);
+      // Track business event for churn analysis
+      trackBusinessEvent('premium_subscription_canceled', {
+        userId,
+        subscriptionId: subscription.id,
+        canceledAt: new Date(),
+        subscriptionCreated: subscription.created
+      });
+
+      logInfo('Subscription canceled successfully', { 
+        subscriptionId: subscription.id, 
+        userId 
+      });
+      
+    } catch (error) {
+      trackError(error as Error, {
+        action: 'subscription_deleted',
+        additionalData: { subscriptionId: subscription.id }
+      });
+      throw error;
+    }
   }
-}
+);
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   try {
@@ -231,7 +295,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     }
 
     // Find user by subscription ID
-    const usersSnapshot = await db.collection('users')
+    const usersSnapshot = await adminDb.collection('users')
       .where('stripeSubscriptionId', '==', invoice.subscription)
       .limit(1)
       .get();
@@ -263,7 +327,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     }
 
     // Find user by subscription ID
-    const usersSnapshot = await db.collection('users')
+    const usersSnapshot = await adminDb.collection('users')
       .where('stripeSubscriptionId', '==', invoice.subscription)
       .limit(1)
       .get();

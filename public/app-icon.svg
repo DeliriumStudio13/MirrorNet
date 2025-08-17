@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#1f2937"/>
+  
+  <!-- Frame icon - scaled up -->
+  <rect x="106" y="156" width="300" height="200" rx="24" ry="24" stroke="#8b5cf6" stroke-width="16" fill="none"/>
+  <line x1="192" y1="436" x2="320" y2="436" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round"/>
+  <line x1="256" y1="356" x2="256" y2="436" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- MirrorNet branding -->
+  <text x="256" y="260" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#8b5cf6" text-anchor="middle">MN</text>
+</svg>

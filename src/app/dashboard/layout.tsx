@@ -10,7 +10,8 @@ import { PremiumBadge } from '@/components/ui/premium-badge';
 import { Avatar } from '@/components/ui/avatar';
 import { NotificationPopup } from '@/components/ui/notification-popup';
 import { useNotificationContext } from '@/contexts/notification-context';
-import { Settings, Bell } from 'lucide-react';
+import { Settings, Bell, Frame, Search, Home, Heart, BookOpen } from 'lucide-react';
+
 
 export default function DashboardLayout({
   children,
@@ -36,8 +37,16 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121214] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="flex items-center justify-center mb-6">
+            <Frame className="h-12 w-12 text-purple-500 mr-3" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              MirrorNet™
+            </span>
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
+        </div>
       </div>
     );
   }
@@ -49,14 +58,17 @@ export default function DashboardLayout({
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="min-h-screen bg-[#121214]">
+    <div className="min-h-screen bg-gray-900">
       {/* Navigation */}
-      <nav className="bg-[#1a1b1e] border-b border-[#2a2b2e] sticky top-0 z-50">
+      <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-white hover:text-blue-400 transition-colors">
-                MirrorNet™
+              <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                <Frame className="h-8 w-8 text-purple-500" />
+                <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  MirrorNet™
+                </span>
               </Link>
             </div>
 
@@ -64,7 +76,7 @@ export default function DashboardLayout({
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#2a2b2e] focus:outline-none"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none"
               >
                 <svg
                   className="h-6 w-6"
@@ -93,69 +105,73 @@ export default function DashboardLayout({
 
             {/* Desktop navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <nav className="flex items-center space-x-2 mr-6">
+              <nav className="flex items-center space-x-1 mr-6">
                 <Link
                   href="/dashboard"
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
+                  <Home className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/search"
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard/search')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
+                  <Search className="h-4 w-4" />
                   Search
                 </Link>
                 <Link
                   href="/dashboard/notifications"
                   onClick={markAsViewed}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors relative ${
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors relative ${
                     isActive('/dashboard/notifications')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  <Bell className="h-4 w-4 inline mr-1" />
+                  <Bell className="h-4 w-4" />
                   Notifications
                   {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {totalNotifications > 9 ? '9+' : totalNotifications}
                     </span>
                   )}
                 </Link>
                 <Link
                   href="/dashboard/attraction"
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard/attraction')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  💖 Attraction
+                  <Heart className="h-4 w-4" />
+                  Attraction
                 </Link>
                 <Link
                   href="/dashboard/traits-guide"
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard/traits-guide')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  Traits Guide
+                  <BookOpen className="h-4 w-4" />
+                  Guide
                 </Link>
               </nav>
-              <div className="flex items-center space-x-4 border-l border-[#2a2b2e] pl-4">
+              <div className="flex items-center space-x-4 border-l border-gray-700 pl-4">
                 <Link
                   href="/dashboard/profile"
-                  className="flex items-center space-x-3 text-sm text-[#a1a1aa] hover:text-[#e1e1e6] transition-colors group"
+                  className="flex items-center space-x-3 text-sm text-gray-300 hover:text-white transition-colors group"
                 >
                   <div className="flex items-center gap-2">
                     <span>Welcome, {user.firstName}</span>
@@ -165,12 +181,12 @@ export default function DashboardLayout({
                     src={user.avatarUrl}
                     alt={`${user.firstName}'s profile`}
                     size={32}
-                    className="border-2 border-transparent group-hover:border-[#3b82f6] transition-colors"
+                    className="border-2 border-transparent group-hover:border-purple-400 transition-colors"
                   />
                 </Link>
                 <Link
                   href="/dashboard/settings"
-                  className="p-2 text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e] rounded-md transition-colors"
+                  className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                   title="Settings"
                 >
                   <Settings className="h-5 w-5" />
@@ -178,14 +194,14 @@ export default function DashboardLayout({
                 {!user.isPremium && (
                   <Link
                     href="/dashboard/premium"
-                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-md hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
                   >
                     Go Premium
                   </Link>
                 )}
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 text-sm font-medium text-[#e1e1e6] bg-[#2a2b2e] rounded-md hover:bg-[#3b3b3e] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1a1b1e] focus:ring-[#3b82f6]"
+                  className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   Sign Out
                 </button>
@@ -195,76 +211,80 @@ export default function DashboardLayout({
 
           {/* Mobile menu */}
           {isMenuOpen && (
-            <div className="md:hidden border-t border-[#2a2b2e] py-3">
+            <div className="md:hidden border-t border-gray-800 py-3">
               <div className="flex flex-col space-y-1 mb-4">
                 <Link
                   href="/dashboard"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
+                  <Home className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/search"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/search')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
+                  <Search className="h-4 w-4" />
                   Search
                 </Link>
                 <Link
                   href="/dashboard/notifications"
                   onClick={markAsViewed}
-                  className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors relative ${
                     isActive('/dashboard/notifications')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  <Bell className="h-4 w-4 inline mr-1" />
+                  <Bell className="h-4 w-4" />
                   Notifications
                   {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute top-2 left-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {totalNotifications > 9 ? '9+' : totalNotifications}
                     </span>
                   )}
                 </Link>
                 <Link
                   href="/dashboard/attraction"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/attraction')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
-                  💖 Attraction
+                  <Heart className="h-4 w-4" />
+                  Attraction
                 </Link>
                 <Link
                   href="/dashboard/traits-guide"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/traits-guide')
-                      ? 'bg-[#2a2b2e] text-[#e1e1e6]'
-                      : 'text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e]'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
+                  <BookOpen className="h-4 w-4" />
                   Traits Guide
                 </Link>
               </div>
-              <div className="border-t border-[#2a2b2e] pt-3 space-y-3">
+              <div className="border-t border-gray-800 pt-3 space-y-3">
                 <Link
                   href="/dashboard/profile"
-                  className="flex items-center space-x-3 px-4 py-2 text-sm text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e] transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
                   <Avatar
                     src={user.avatarUrl}
                     alt={`${user.firstName}'s profile`}
                     size={32}
-                    className="border-2 border-[#2a2b2e]"
+                    className="border-2 border-gray-700"
                   />
                   <div className="flex items-center gap-2">
                     <span>Welcome, {user.firstName}</span>
@@ -273,7 +293,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-2 text-sm text-[#a1a1aa] hover:text-[#e1e1e6] hover:bg-[#2a2b2e] transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
@@ -281,14 +301,14 @@ export default function DashboardLayout({
                 {!user.isPremium && (
                   <Link
                     href="/dashboard/premium"
-                    className="flex items-center space-x-3 px-4 py-2 text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 mx-4 rounded-lg"
+                    className="flex items-center space-x-3 px-4 py-3 text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 mx-4 rounded-lg transform hover:scale-105"
                   >
                     <span>Go Premium</span>
                   </Link>
                 )}
                 <button
                   onClick={handleSignOut}
-                  className="w-full text-left px-4 py-2 text-sm font-medium text-[#e1e1e6] hover:bg-[#2a2b2e] transition-colors"
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
                   Sign Out
                 </button>

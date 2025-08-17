@@ -456,6 +456,9 @@ export default function EcoAssessmentPage() {
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Leaf className="h-8 w-8 text-green-500" />
             Eco Assessment
+            <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+              BETA
+            </span>
           </h1>
           <p className="text-gray-400 mt-2">
             Answer honestly to get your environmental consciousness rating

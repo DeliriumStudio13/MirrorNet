@@ -38,8 +38,8 @@ MirrorNetPro is a **social feedback and rating platform** where users create cir
 3. **General** 🌐 - General impressions from broader network
 
 #### **Assessment Circles** (Self-Assessment Only)
-4. **Family** ❤️ - Self-assessment + premium users can create relationship goals
-5. **Eco Rating** 🌱 - Environmental consciousness self-assessment
+4. **Family** 👨‍👩‍👧‍👦 - Self-assessment + premium users can create relationship goals
+5. **Eco Rating** 🌱 (BETA) - Environmental consciousness self-assessment
 
 #### **Premium Circles**
 6. **Attraction** ✨ - Premium-only romantic interest ratings (anonymous by default)
@@ -49,6 +49,9 @@ MirrorNetPro is a **social feedback and rating platform** where users create cir
 #### **Rating System**
 - **5-trait rating** per circle (1-10 scale)
 - **Anonymous by default** across all circles
+- **Unlimited re-rating** - users can re-rate members without time restrictions
+- **Persistent rating history** - all trait scores preserved regardless of trait selection changes
+- **Dynamic trait averaging** - current trait selection used for display and averaging
 - **Monthly performance tracking** with graphs
 - **Real-time updates** via Firestore listeners
 
@@ -59,33 +62,53 @@ MirrorNetPro is a **social feedback and rating platform** where users create cir
 - **Rate Anyone**: Rate any app user in Attraction (token cost)
 - **Family Goals**: Create 30-day relationship improvement goals
 
+#### **Universal Features**
+- **Reveal Requests**: All users can receive reveal requests from anonymous raters
+- **Notification System**: Unified notification center for invitations, reveal requests, and family goals
+- **Professional Design**: Consistent gray theme with gradient accents throughout the app
+
 #### **Self-Assessments**
-- **Eco Assessment**: 15 questions across 5 eco traits
+- **Eco Assessment**: 15 questions across 5 eco traits (marked as BETA)
 - **Family Assessment**: 15 questions across 5 family traits
 - **Persistent scores** displayed on dashboard
+- **Family Goals Interface**: Standard users can view and respond to active family goals created by premium users
 
 ## 📊 Database Schema
 
 ### **Core Collections**
 
-#### **users**
+#### **users** ✅ CURRENT SCHEMA
 ```typescript
 {
   uid: string
   firstName: string
   lastName: string
+  firstName_lowercase: string  // For case-insensitive search
+  lastName_lowercase: string   // For case-insensitive search
   email: string
   avatarUrl?: string
   isPremium: boolean
-  premiumTokens: number
-  stripeCustomerId?: string
-  stripeSubscriptionId?: string
-  subscriptionStatus?: string
-  premiumActivatedAt?: Date
-  premiumCanceledAt?: Date
-  lastPaymentAt?: Date
-  lastFailedPaymentAt?: Date
+  tokens: number              // Standard user tokens (default: 5)
+  
+  // Premium subscription fields (initialized on signup)
+  premiumTokens: number       // Premium feature tokens (default: 0, gets 3 on upgrade)
+  subscriptionStatus: string  // 'none', 'active', 'trialing', 'canceled', 'past_due'
+  stripeCustomerId?: string   // Stripe customer ID
+  stripeSubscriptionId?: string // Stripe subscription ID
+  premiumPlan?: string        // 'monthly_trial', 'monthly', etc.
+  premiumActivatedAt?: Date   // When premium was activated
+  premiumCanceledAt?: Date    // When premium was canceled
+  lastPaymentAt?: Date        // Last successful payment
+  lastFailedPaymentAt?: Date  // Last failed payment
+  stripeTestClockId?: string  // For Stripe test clock (development)
+  
   createdAt: Date
+  publicProfile: {            // Public profile data
+    firstName: string
+    lastName: string
+  }
+  
+  // Self-assessment results
   ecoAssessment?: { traitScores, overallScore, completedAt }
   familyAssessment?: { traitScores, overallScore, completedAt }
 }
@@ -173,6 +196,46 @@ MirrorNetPro is a **social feedback and rating platform** where users create cir
 
 ## 🔒 Security & Access Control
 
+### **Authentication System** ✅ PRODUCTION-READY
+**Complete authentication flow with industry-standard security measures:**
+
+#### **🔐 Sign-Up Process**
+- **Email/Password Registration**: Accepts any valid email address (Firebase validation)
+- **Google OAuth Integration**: Seamless single-click registration
+- **Enhanced Error Handling**: Specific error messages for all Firebase auth codes
+- **User Guidance**: Clear instructions for password requirements and email verification
+- **Automatic User Creation**: Creates user profile and initial circles on successful registration
+
+#### **🔑 Sign-In Process**
+- **Email/Password Authentication**: Secure login with comprehensive error handling
+- **Google OAuth Sign-In**: Single-click authentication for existing Google users
+- **Forgot Password Flow**: Security-first password reset implementation
+- **Error Message Specificity**: Detailed feedback for different authentication scenarios
+
+#### **🛡️ Forgot Password Security (PRODUCTION-READY)**
+**Implements security-first approach preventing email enumeration attacks:**
+
+```typescript
+// Security Features Implemented:
+✅ Generic success messages regardless of email existence
+✅ User education about security measures
+✅ Rate limiting protection with helpful error messages
+✅ Email validation with specific error feedback
+✅ OWASP-compliant email enumeration prevention
+```
+
+**Key Security Measures:**
+- **Email Enumeration Prevention**: Same success message whether email exists or not
+- **User Education**: Transparent explanation of security behavior
+- **Rate Limiting**: Handles Firebase rate limits gracefully
+- **Generic Success Message**: "If an account with that email exists, we've sent a password reset link to your inbox."
+
+#### **🎨 Modern UI Design System**
+- **Gray Theme Consistency**: Professional gray-800/gray-700 color scheme
+- **Blue Gradient Accents**: Consistent blue-600 to blue-500 gradients for buttons
+- **Enhanced User Experience**: Helpful guidance text and security explanations
+- **Responsive Error Handling**: Color-coded error and success messages
+
 ### **Firestore Rules Patterns**
 ```javascript
 // Users can only access their own data
@@ -187,8 +250,10 @@ allow write: if getUserData().isPremium == true;
 
 ### **Authentication Guards**
 - **Client-side route protection** in layout components
+- **Server-side authentication** for all API routes using Firebase Admin SDK
 - **Premium feature guards** throughout the application
 - **Token validation** before premium actions
+- **Secure password reset** with email enumeration protection
 
 ## 🚀 Key Features Implementation
 
@@ -222,14 +287,23 @@ ratings.forEach(rating => {
 ## 📱 Page Structure
 
 ### **Public Pages**
-- `/` - Landing page with auth redirect
+- `/` - Professional landing page with Frame icon branding, hero section, features, pricing, FAQ
+- `/terms` - Terms of Service page
+- `/privacy` - Privacy Policy page (GDPR compliant)
+
+### **Authentication Pages**
+- Landing page includes comprehensive authentication system:
+  - **Sign-up**: Email/password + Google OAuth with enhanced error handling
+  - **Sign-in**: Email/password + Google OAuth with comprehensive security measures
+  - **Forgot Password**: Secure password reset flow with email enumeration protection
 
 ### **Dashboard Pages**
 - `/dashboard` - Main dashboard with circle cards
 - `/dashboard/search` - User search and invitation system
 - `/dashboard/notifications` - Unified notification center
 - `/dashboard/premium` - Premium subscription page
-- `/dashboard/settings` - Testing/development utilities
+- `/dashboard/settings` - User settings and premium subscription management
+- `/dashboard/profile` - Profile editing with name and picture upload
 
 ### **Circle Management**
 - `/dashboard/circle/[circleId]` - Circle details with member list
@@ -276,10 +350,10 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 ## 🎯 User Flows
 
 ### **Standard User Journey**
-1. **Sign Up/Login** → Firebase Auth
-2. **Dashboard** → See empty circle cards
+1. **Sign Up/Login** → Enhanced Firebase Auth with Google OAuth and forgot password
+2. **Dashboard** → See empty circle cards with professional design
 3. **Search Users** → Find and invite friends to circles
-4. **Rate Members** → Provide feedback on 5 traits per circle
+4. **Rate Members** → Provide feedback on 5 traits per circle (unlimited re-rating)
 5. **View Stats** → See aggregated scores and performance
 6. **Take Assessments** → Complete Eco/Family self-assessments
 
@@ -299,70 +373,183 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 4. **Redesigned UI** - More user-friendly trait modification interface
 5. **Added Avatar System** - Placeholder support for users without profile pictures
 6. **Stripe Payment Integration** - Full subscription system with webhooks
+7. **Professional Landing Page** - Complete redesign with Frame icon branding, FAQ, legal pages
+8. **Profile Name Updates** - Fixed lowercase field synchronization for search functionality
+9. **App Cleanup** - Removed all testing interfaces, finalized production-ready state
+10. **🔐 Enhanced Authentication System** - Production-ready security implementation:
+    - **Secure Forgot Password**: OWASP-compliant flow preventing email enumeration attacks
+    - **Enhanced Error Handling**: Specific error messages for all authentication scenarios
+    - **Professional UI Design**: Gray theme with blue gradient accents
+    - **User Education**: Security transparency and helpful guidance text
+    - **Comprehensive Sign-Up**: Improved form with validation and user guidance
 
-### **Stripe Development Setup**
+### **Stripe Development Setup** ✅ FULLY IMPLEMENTED
 
-#### **Local Development Workflow**
+#### **🔧 Local Development Workflow**
 1. **Start Next.js**: `npm run dev` (runs on http://localhost:3000)
-2. **Start ngrok**: `ngrok http 3000` (creates public HTTPS tunnel)
-3. **Update Stripe webhook URL** with new ngrok URL when ngrok restarts
-4. **Test payments** using Stripe test cards
+2. **Start ngrok**: `ngrok http --log=stdout 3000` (creates public HTTPS tunnel with logging)
+3. **Update environment variables** with new ngrok URL in `.env.local`
+4. **Update Stripe webhook URL** in Stripe Dashboard with new ngrok URL
+5. **Test payments** using Stripe test cards (4242 4242 4242 4242)
 
-#### **ngrok Configuration**
+#### **🌐 ngrok Configuration**
 - **Purpose**: Creates public HTTPS endpoint for Stripe webhooks during development
 - **URL Pattern**: `https://[random].ngrok-free.app`
-- **Important**: ngrok URL changes each restart, requiring webhook URL update in Stripe
+- **Command**: `ngrok http --log=stdout 3000` (with logging for debugging)
+- **Important**: ngrok URL changes each restart, requiring updates in both `.env.local` and Stripe Dashboard
 - **Free Plan Limitation**: Only 1 simultaneous session allowed
 
-#### **Stripe Webhook Setup**
+#### **🔗 Stripe Webhook Setup**
 ```bash
 # Webhook endpoint (update with current ngrok URL)
 https://[ngrok-url].ngrok-free.app/api/stripe/webhook
 
-# Required webhook events:
-- checkout.session.completed
-- customer.subscription.created
-- customer.subscription.updated
-- customer.subscription.deleted
-- invoice.payment_succeeded
-- invoice.payment_failed
+# Required webhook events (ALL IMPLEMENTED):
+✅ checkout.session.completed
+✅ customer.subscription.created
+✅ customer.subscription.updated
+✅ customer.subscription.deleted
+✅ invoice.payment_succeeded
+✅ invoice.payment_failed
+✅ customer.created (handled but unprocessed)
+✅ payment_method.attached (handled but unprocessed)
 ```
 
-#### **Key Files Created**
-- `src/lib/stripe.ts` - Stripe SDK configuration
-- `src/lib/firebase-admin.ts` - Server-side Firebase Admin SDK
-- `src/app/api/stripe/create-checkout/route.ts` - Checkout session creation
-- `src/app/api/stripe/webhook/route.ts` - Webhook event handling
-- `src/app/dashboard/premium/actions.ts` - Client-side checkout action
-- `src/config/serviceAccount.json` - Firebase Admin credentials
+#### **📁 Key Files Implemented**
+- `src/lib/stripe.ts` - Stripe SDK configuration with API version 2023-10-16
+- `src/lib/firebase-admin.ts` - Server-side Firebase Admin SDK with environment variables
+- `src/app/api/stripe/create-checkout/route.ts` - Checkout session creation with 30-day trial
+- `src/app/api/stripe/create-portal/route.ts` - Stripe Customer Portal for subscription management
+- `src/app/api/stripe/webhook/route.ts` - Comprehensive webhook event handling
+- `src/app/dashboard/premium/actions.ts` - Client-side checkout and portal actions
 
-#### **Development Workflow Issues & Solutions**
-- **Port conflicts**: Kill all node processes if Next.js can't start on port 3000
-- **ngrok session limits**: Only one free session allowed, kill existing before restart
-- **Webhook URL updates**: Must update Stripe webhook endpoint when ngrok restarts
-- **Environment variables**: Restart dev server after adding new env vars
-- **Trial subscriptions**: Webhook handles both "active" and "trialing" status as premium
+#### **🔐 Authentication Architecture** 
+**CRITICAL: DO NOT MODIFY - WORKING CONFIGURATION**
+
+##### **Firebase Admin SDK Setup**
+```typescript
+// src/lib/firebase-admin.ts
+// Uses environment variables instead of service account JSON
+// Exports: adminAuth, adminDb (consistent naming across all routes)
+export const adminDb = getFirestore();
+export const adminAuth = getAuth();
+```
+
+##### **API Route Authentication Pattern**
+```typescript
+// ALL Stripe API routes use this EXACT pattern:
+// 1. Extract token from Authorization header
+const authHeader = headersList.get('Authorization');
+const token = authHeader?.split('Bearer ')[1];
+
+// 2. Verify Firebase token server-side
+const decodedToken = await adminAuth.verifyIdToken(token);
+const userId = decodedToken.uid;
+
+// 3. Use adminDb for all Firestore operations
+const userDoc = await adminDb.collection('users').doc(userId).get();
+```
+
+##### **Client-Side Authentication Pattern**
+```typescript
+// src/app/dashboard/premium/actions.ts
+// Uses Firebase client SDK to get token, sends in Authorization header
+const user = auth.currentUser;
+const token = await user.getIdToken();
+
+fetch('/api/stripe/create-checkout', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+});
+```
+
+#### **⚙️ Environment Variables Configuration**
+```bash
+# Stripe Configuration
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_PREMIUM_PRICE_ID=price_1Rw7kEPxDhlQElvywHvVGUx4  # EXACT ID - DO NOT CHANGE
+STRIPE_WEBHOOK_SECRET=whsec_...  # Get from Stripe Dashboard webhook settings
+NEXT_PUBLIC_APP_URL=https://[current-ngrok-url].ngrok-free.app
+
+# Firebase Admin SDK (for server-side operations)
+FIREBASE_PROJECT_ID=mirrornet-xoott
+FIREBASE_PRIVATE_KEY_ID=...
+FIREBASE_PRIVATE_KEY=...  # Replace \n with actual newlines
+FIREBASE_CLIENT_EMAIL=...
+FIREBASE_CLIENT_ID=...
+FIREBASE_CLIENT_X509_CERT_URL=...
+```
+
+#### **🚨 Critical Development Workflow**
+1. **Kill all processes**: `taskkill /F /IM node.exe /IM ngrok.exe`
+2. **Start ngrok**: `ngrok http --log=stdout 3000`
+3. **Start Next.js**: `npm run dev`
+4. **Update .env.local** with new ngrok URL
+5. **Update Stripe webhook endpoint** in Dashboard
+6. **Verify webhook secret** matches between Stripe and .env.local
+
+#### **✅ Working Features Confirmed**
+- **30-day free trial** with payment method collection upfront
+- **Automatic premium status updates** via webhooks
+- **Stripe Customer Portal** for subscription management
+- **Robust error handling** with detailed logging
+- **Consistent authentication** across all API routes
+- **Premium token system** (3 tokens granted on upgrade)
+
+#### **🏪 Stripe Customer Portal Integration**
+**Location**: Available in `/dashboard/settings` and `/dashboard/premium` for premium users
+
+```typescript
+// Client-side portal access (src/app/dashboard/premium/actions.ts)
+export async function createPortalSession() {
+  // Uses same authentication pattern as checkout
+  // Redirects to Stripe-hosted portal for subscription management
+  // Returns to /dashboard/settings after portal actions
+}
+```
+
+**Portal Features Available to Users**:
+- View subscription details and billing history
+- Update payment methods
+- Cancel subscription (downgrades to standard user)
+- Download invoices
+- Update billing address
+
+**Important**: Portal configuration must be set in Stripe Dashboard at:
+`https://dashboard.stripe.com/test/settings/billing/portal`
 
 ### **Known Technical Debt**
 - Some traits library still contains unused custom circle categories
 - Console logging can be cleaned up in production
 - Some Firestore indexes may need optimization
+- Firebase domain authorization needed for production domain
 
 ### **Testing Considerations**
-- Premium status toggle in `/dashboard/settings` for development
-- Token reset functionality for testing premium features
 - Real-time listener cleanup important for performance
 - **Stripe Test Cards**: Use `4242 4242 4242 4242` for successful payments
+- **ngrok Domain Changes**: Requires updates to Firebase authorized domains and Stripe webhook URLs
+- **Authentication Testing**: 
+  - Test forgot password flow with both existing and non-existing emails
+  - Verify error messages for different auth scenarios
+  - Test Google OAuth integration
+  - Verify security measures prevent email enumeration
 
 ## 📞 API Integration Points
 
 ### **Implemented Integrations**
-- **Stripe** for payment processing (premium subscriptions) ✅
-  - Custom Stripe integration with checkout sessions
-  - Webhook handling for subscription events
-  - 30-day free trial with €3.99/month pricing
-  - Automatic user premium status updates
-  - **Development Setup**: Uses ngrok for webhook testing (see Development Notes)
+- **Stripe** for payment processing (premium subscriptions) ✅ **FULLY OPERATIONAL**
+  - ✅ Checkout sessions with 30-day free trial (€3.99/month after trial)
+  - ✅ Comprehensive webhook handling for all subscription events
+  - ✅ Automatic premium status updates in Firestore
+  - ✅ Stripe Customer Portal for subscription management
+  - ✅ Premium token system (3 tokens granted on upgrade)
+  - ✅ Robust authentication using Firebase Admin SDK
+  - ✅ Error handling and detailed logging
+  - ✅ Development setup with ngrok for webhook testing
+  - ✅ Test clock integration for trial period simulation
 
 ### **Planned Integrations**
 - **Email services** for notifications (optional)
@@ -394,10 +581,15 @@ useEffect(() => {
 - **User-friendly error messages** with fallback states
 - **Loading states** for all async operations
 
+### **Profile Management**
+- **Name Updates**: Profile editing automatically updates both regular and lowercase name fields for search functionality
+- **Profile Pictures**: Firebase Storage integration with error handling and loading states
+- **Monthly Name Change Limit**: Users can only change names once per month (tracked via `lastNameChange` field)
+
 ## 📋 Future Roadmap
 
 ### **Immediate Priorities**
-1. **Stripe Customer Portal** for subscription management
+1. **Production Domain Setup** - Configure real domain and update Firebase authorized domains
 2. **Mobile Responsiveness** improvements
 3. **Performance Optimization** for large datasets
 4. **Email Notifications** system
@@ -412,12 +604,26 @@ useEffect(() => {
 
 ## 🤝 Handoff Notes
 
-This project is production-ready with a solid foundation. The architecture is scalable, the UI is polished, and the core features are fully functional. The codebase follows React/Next.js best practices with TypeScript for type safety.
+This project is **production-ready** with a solid foundation. The architecture is scalable, the UI is polished, and all core features are fully functional. The codebase follows React/Next.js best practices with TypeScript for type safety.
 
-**Key areas for continued development:**
-- Payment integration (Stripe)
+**✅ Completed & Operational:**
+- **Full Stripe Integration** - 30-day trials, subscription management, webhooks
+- **Professional Landing Page** - Complete with branding, FAQ, legal pages
+- **Production-Ready Authentication** - Secure forgot password, enhanced error handling, OWASP compliance
+- **User Profile System** - Name editing, profile pictures, search functionality
+- **Premium Features** - Trait customization, attraction ratings, family goals
+- **Real-time Updates** - Live notifications and data synchronization
+- **Enterprise Security** - Firebase Auth, Firestore rules, email enumeration prevention
+
+**🎯 Ready for Production:**
+- **Domain Setup** - Add production domain to Firebase authorized domains
+- **Environment Variables** - Update URLs from ngrok to production domain
+- **Stripe Configuration** - Update webhook URLs to production endpoints
+
+**🚀 Next Phase Opportunities:**
 - Mobile app development
-- Advanced analytics
+- Advanced analytics dashboard  
 - Performance optimization for scale
+- Email notification system
 
-The database schema is well-designed and the real-time features work reliably. The premium system is implemented and ready for monetization once payment processing is integrated.
+The database schema is well-designed, the real-time features work reliably, the premium subscription system is fully operational, and the authentication system meets enterprise security standards. The application is ready for users and monetization with industry-standard security measures.

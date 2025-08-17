@@ -186,7 +186,7 @@ export default function RatingPage() {
   };
 
   const handleSubmit = async () => {
-    if (!member || Object.keys(scores).length !== traits.length) {
+    if (!member || Object.keys(scores).length !== ratingContext.traits.length) {
       return; // Validate all traits are rated
     }
 
@@ -245,13 +245,13 @@ export default function RatingPage() {
             ← Back to Member Selection
           </Link>
           <h1 className="text-2xl font-bold text-white">
-            {isUpdating ? 'Update Rating for' : 'Rate'} {member.firstName} {member.lastName}
+            {isUpdating ? 'Re-rate' : 'Rate'} {member.firstName} {member.lastName}
           </h1>
           <p className="text-gray-400 mt-1">{circle.name} Circle</p>
           {isUpdating && (
-            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mt-2">
-              <p className="text-yellow-400 text-sm">
-                You have already rated this member. Your new ratings will replace the previous ones.
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mt-2">
+              <p className="text-blue-400 text-sm">
+                ✨ You can re-rate this member anytime. Your new ratings will replace the previous ones.
               </p>
             </div>
           )}
@@ -325,13 +325,13 @@ export default function RatingPage() {
             disabled={isSubmitting || Object.keys(scores).length !== ratingContext.traits.length}
             className={`w-full py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed mt-8 text-lg font-medium transition-colors ${
               isUpdating 
-                ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
                 : 'bg-blue-500 text-white hover:bg-blue-600'
             }`}
           >
             {isSubmitting 
-              ? (isUpdating ? 'Updating...' : 'Submitting...') 
-              : (isUpdating ? 'Update Rating' : 'Submit Rating')
+              ? (isUpdating ? 'Re-rating...' : 'Submitting...') 
+              : (isUpdating ? 'Re-rate Member' : 'Submit Rating')
             }
           </button>
         </div>

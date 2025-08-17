@@ -1,12 +1,31 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { stripe, PREMIUM_PRICE_ID } from '@/lib/stripe';
-import { auth, db } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { headers } from 'next/headers';
+import { rateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   console.log('Received checkout session creation request');
   
   try {
+    // Apply rate limiting (5 requests per minute for checkout creation)
+    try {
+      await rateLimit(req, 5, 60 * 1000);
+    } catch (rateLimitError) {
+      console.log('Rate limit exceeded for checkout creation:', rateLimitError.message);
+      return new NextResponse(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '60',
+            ...getRateLimitHeaders(req, 5),
+          },
+        }
+      );
+    }
+    const rateLimitHeaders = getRateLimitHeaders(req, 5);
     // 1. Get and verify the authorization token
     const headersList = await headers();
     const authHeader = headersList.get('Authorization');
@@ -30,7 +49,7 @@ export async function POST() {
     console.log('Verifying Firebase token...');
     let decodedToken;
     try {
-      decodedToken = await auth.verifyIdToken(token);
+      decodedToken = await adminAuth.verifyIdToken(token);
     } catch (error) {
       console.error('Firebase token verification failed:', error);
       return new NextResponse(
@@ -49,7 +68,7 @@ export async function POST() {
 
     // 3. Get user data
     console.log('Fetching user data from Firestore...');
-    const userDoc = await db.collection('users').doc(userId).get();
+    const userDoc = await adminDb.collection('users').doc(userId).get();
     const userData = userDoc.data();
 
     if (!userData) {
@@ -98,7 +117,7 @@ export async function POST() {
         console.log('Created new Stripe customer:', stripeCustomerId);
 
         // Update user with new Stripe customer ID
-        await db.collection('users').doc(userId).update({
+        await adminDb.collection('users').doc(userId).update({
           stripeCustomerId: stripeCustomerId
         });
         console.log('Updated user with new Stripe customer ID');
@@ -203,6 +222,7 @@ export async function POST() {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
+            ...rateLimitHeaders,
           },
         }
       );

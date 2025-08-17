@@ -175,28 +175,24 @@ export default function ModifyTraitsPage() {
       // Create a batch for updating ratings
       const batch = writeBatch(db);
       
-      // For each rating, preserve scores for traits that still exist
+      // PERSISTENT RATING SYSTEM: Preserve ALL historical trait scores forever
+      // This allows users to switch traits and revert back without losing ratings
       ratingsSnapshot.docs.forEach(ratingDoc => {
         const rating = ratingDoc.data();
-        const newScores: Record<string, number> = {};
+        const existingScores = rating.scores || {};
+        const updatedScores = { ...existingScores }; // Preserve ALL existing scores
         
-        // Keep scores for traits that are still selected
-        Object.entries(rating.scores || {}).forEach(([traitId, score]) => {
-          if (selectedTraitsArray.includes(traitId)) {
-            newScores[traitId] = score;
-          }
-        });
-        
-        // Initialize new traits with null score (they need new ratings)
+        // Only add NEW traits that don't have scores yet (initialize with 0)
         selectedTraitsArray.forEach(traitId => {
-          if (!newScores[traitId]) {
-            newScores[traitId] = 0;
+          if (!updatedScores.hasOwnProperty(traitId)) {
+            updatedScores[traitId] = 0; // New trait, needs rating
           }
         });
         
-        // Update the rating
+        // Update the rating (preserving all historical scores)
+        // Note: Only currently selected traits will be shown/averaged in UI
         batch.update(doc(db, 'ratings', ratingDoc.id), {
-          scores: newScores,
+          scores: updatedScores,
           updatedAt: serverTimestamp()
         });
       });
@@ -297,112 +293,173 @@ export default function ModifyTraitsPage() {
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Trait Columns */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
         
-        {/* Left Panel - Current & Selected */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left Column - Standard Traits */}
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            Standard {circle.name} Traits
+          </h3>
+          <p className="text-xs text-gray-400 mb-4">Default traits for {circle.name.toLowerCase()} relationships</p>
           
-          {/* Current Traits - Clickable to Select */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              Current Traits
-            </h3>
-            <p className="text-xs text-gray-400 mb-3">Click to add to your new selection</p>
-            <div className="space-y-2">
-              {getTraitsByIds(currentTraits).map(trait => {
-                const isSelected = selectedTraits[trait.id];
-                const canSelect = selectedTraitsArray.length < 5 || isSelected;
-                
-                return (
-                  <div 
-                    key={trait.id} 
-                    onClick={() => canSelect && handleTraitToggle(trait.id)}
-                    className={`rounded-lg p-3 cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-purple-500/20 border border-purple-500/50'
-                        : canSelect
-                        ? 'bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-400/40'
-                        : 'bg-blue-500/10 border border-blue-500/20 opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className={`font-medium text-sm ${isSelected ? 'text-purple-300' : 'text-blue-300'}`}>
-                          {trait.name}
-                        </h4>
-                        <p className="text-xs text-gray-400 mt-1">{trait.description}</p>
-                      </div>
-                      <div className="ml-3 flex-shrink-0">
-                        {isSelected ? (
-                          <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                            <Check className="h-3 w-3 text-white" />
-                          </div>
-                        ) : canSelect ? (
-                          <div className="w-5 h-5 border-2 border-blue-400 rounded-full hover:border-blue-300 transition-colors"></div>
-                        ) : (
-                          <div className="w-5 h-5 border-2 border-gray-600 rounded-full opacity-30"></div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Selected Traits */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              New Selection
-            </h3>
-            
-            {selectedTraitsArray.length === 0 ? (
-              <p className="text-gray-500 text-sm italic">No traits selected yet</p>
-            ) : (
-              <div className="space-y-2">
-                {selectedTraitObjects.map((trait, index) => (
-                  <div
-                    key={trait.id}
-                    className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 flex items-center justify-between"
-                  >
+          <div className="space-y-2">
+            {getTraitsForCircle(circleId as string).map(trait => {
+              const isSelected = selectedTraits[trait.id];
+              const canSelect = selectedTraitsArray.length < 5 || isSelected;
+              
+              return (
+                <div 
+                  key={trait.id} 
+                  onClick={() => canSelect && handleTraitToggle(trait.id)}
+                  className={`rounded-lg p-3 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-purple-500/20 border border-purple-500/50'
+                      : canSelect
+                      ? 'bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-400/40'
+                      : 'bg-blue-500/10 border border-blue-500/20 opacity-50 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                          {index + 1}
-                        </span>
-                        <h4 className="font-medium text-purple-300 text-sm">{trait.name}</h4>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1 ml-7">{trait.description}</p>
+                      <h4 className={`font-medium text-sm ${isSelected ? 'text-purple-300' : 'text-blue-300'}`}>
+                        {trait.name}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1">{trait.description}</p>
                     </div>
-                    <button
-                      onClick={() => handleTraitToggle(trait.id)}
-                      className="text-purple-400 hover:text-red-400 transition-colors p-1 rounded"
-                      title="Remove trait"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <div className="ml-3 flex-shrink-0">
+                      {isSelected ? (
+                        <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                      ) : canSelect ? (
+                        <div className="w-5 h-5 border-2 border-blue-400 rounded-full hover:border-blue-300 transition-colors"></div>
+                      ) : (
+                        <div className="w-5 h-5 border-2 border-gray-600 rounded-full opacity-30"></div>
+                      )}
+                    </div>
                   </div>
-                ))}
-                
-                {/* Remaining slots */}
-                {Array.from({ length: 5 - selectedTraitsArray.length }).map((_, index) => (
-                  <div key={index} className="border-2 border-dashed border-gray-600 rounded-lg p-3 flex items-center gap-2">
-                    <span className="w-5 h-5 border border-gray-600 text-gray-600 text-xs rounded-full flex items-center justify-center">
-                      {selectedTraitsArray.length + index + 1}
-                    </span>
-                    <span className="text-gray-500 text-sm italic">Select a trait</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Column - Alternative Traits */}
+        <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            Alternative {circle.name} Traits
+          </h3>
+          <p className="text-xs text-gray-400 mb-4">Optional traits you can use instead</p>
+          
+          <div className="space-y-2">
+            {alternativeTraits.map(trait => {
+              const isSelected = selectedTraits[trait.id];
+              const canSelect = selectedTraitsArray.length < 5 || isSelected;
+              
+              return (
+                <div 
+                  key={trait.id} 
+                  onClick={() => canSelect && handleTraitToggle(trait.id)}
+                  className={`rounded-lg p-3 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-purple-500/20 border border-purple-500/50'
+                      : canSelect
+                      ? 'bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 hover:border-yellow-400/40'
+                      : 'bg-yellow-500/10 border border-yellow-500/20 opacity-50 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className={`font-medium text-sm ${isSelected ? 'text-purple-300' : 'text-yellow-300'}`}>
+                        {trait.name}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1">{trait.description}</p>
+                    </div>
+                    <div className="ml-3 flex-shrink-0">
+                      {isSelected ? (
+                        <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                      ) : canSelect ? (
+                        <div className="w-5 h-5 border-2 border-yellow-400 rounded-full hover:border-yellow-300 transition-colors"></div>
+                      ) : (
+                        <div className="w-5 h-5 border-2 border-gray-600 rounded-full opacity-30"></div>
+                      )}
+                    </div>
                   </div>
-                ))}
+                </div>
+              );
+            })}
+            
+            {alternativeTraits.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">No alternative traits available for this circle</p>
               </div>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Token Cost */}
+      {/* Selection Area Below */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        
+        {/* Selected Traits */}
+        <div className="lg:col-span-2 bg-gray-800/50 border border-gray-700 rounded-xl p-5">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+            Your New Selection ({selectedTraitsArray.length}/5)
+          </h3>
+          
+          {selectedTraitsArray.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm italic">Select 5 traits from the columns above</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+              {selectedTraitObjects.map((trait, index) => (
+                <div
+                  key={trait.id}
+                  className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 bg-purple-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                        {index + 1}
+                      </span>
+                      <h4 className="font-medium text-purple-300 text-sm">{trait.name}</h4>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 ml-7">{trait.description}</p>
+                  </div>
+                  <button
+                    onClick={() => handleTraitToggle(trait.id)}
+                    className="text-purple-400 hover:text-red-400 transition-colors p-1 rounded"
+                    title="Remove trait"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Remaining slots */}
+              {Array.from({ length: 5 - selectedTraitsArray.length }).map((_, index) => (
+                <div key={index} className="border-2 border-dashed border-gray-600 rounded-lg p-3 flex items-center gap-2">
+                  <span className="w-5 h-5 border border-gray-600 text-gray-600 text-xs rounded-full flex items-center justify-center">
+                    {selectedTraitsArray.length + index + 1}
+                  </span>
+                  <span className="text-gray-500 text-sm italic">Select a trait</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Token Cost & Info */}
+        <div className="lg:col-span-1 space-y-4">
           <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-xl p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div>
                 <h4 className="font-semibold text-white text-sm">Cost: 1 Token</h4>
                 <p className="text-xs text-gray-400">You have {user?.premiumTokens || 0} tokens</p>
@@ -410,101 +467,16 @@ export default function ModifyTraitsPage() {
               <Crown className="h-5 w-5 text-orange-400" />
             </div>
           </div>
-        </div>
-
-        {/* Right Panel - Trait Selection */}
-        <div className="lg:col-span-2">
-          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5">
-            
-            {/* Search Header */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Browse All Available Traits</h3>
-              
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search traits by name or description..."
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Quick Select - Suggested Alternatives */}
-            {alternativeTraits.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
-                  Recommended for {circle.name}
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {alternativeTraits.map((trait) => (
-                    <button
-                      key={trait.id}
-                      onClick={() => handleTraitToggle(trait.id)}
-                      disabled={!selectedTraits[trait.id] && selectedTraitsArray.length >= 5}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        selectedTraits[trait.id]
-                          ? 'bg-purple-600 border border-purple-500 text-white'
-                          : selectedTraitsArray.length >= 5
-                          ? 'bg-gray-600 border border-gray-600 text-gray-400 cursor-not-allowed opacity-50'
-                          : 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20'
-                      }`}
-                    >
-                      {trait.name}
-                      {selectedTraits[trait.id] && <Check className="inline h-3 w-3 ml-1" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* All Available Traits */}
-            <div className="space-y-1 max-h-96 overflow-y-auto pr-2">
-              {filteredTraits.map((trait) => {
-                const isSelected = selectedTraits[trait.id];
-                const canSelect = selectedTraitsArray.length < 5 || isSelected;
-                
-                return (
-                  <div
-                    key={trait.id}
-                    onClick={() => canSelect && handleTraitToggle(trait.id)}
-                    className={`p-3 rounded-lg border transition-all cursor-pointer group ${
-                      isSelected
-                        ? 'bg-purple-600/20 border-purple-500/50 text-purple-200'
-                        : canSelect
-                        ? 'bg-gray-700/30 border-gray-600 hover:border-purple-400/50 text-gray-200 hover:bg-gray-700/50'
-                        : 'bg-gray-800/30 border-gray-700 text-gray-500 cursor-not-allowed opacity-40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h5 className="font-medium text-sm">{trait.name}</h5>
-                          <span className="text-xs px-2 py-0.5 bg-gray-600/50 rounded text-gray-400">
-                            {trait.category}
-                          </span>
-                        </div>
-                        <p className="text-xs opacity-80 mt-1">{trait.description}</p>
-                      </div>
-                      <div className="ml-3 flex-shrink-0">
-                        {isSelected ? (
-                          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                            <Check className="h-3 w-3 text-white" />
-                          </div>
-                        ) : canSelect ? (
-                          <div className="w-6 h-6 border-2 border-gray-500 rounded-full group-hover:border-purple-400 transition-colors"></div>
-                        ) : (
-                          <div className="w-6 h-6 border-2 border-gray-600 rounded-full opacity-30"></div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+            <h4 className="font-semibold text-blue-300 text-sm mb-2">How it works:</h4>
+            <ul className="text-xs text-gray-400 space-y-1">
+              <li>• Choose exactly 5 traits</li>
+              <li>• Mix standard and alternative traits</li>
+              <li>• <strong className="text-green-300">All ratings are preserved forever</strong></li>
+              <li>• Switch back anytime - old scores return</li>
+              <li>• New traits start with 0 scores</li>
+            </ul>
           </div>
         </div>
       </div>

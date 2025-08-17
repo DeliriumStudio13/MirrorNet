@@ -67,6 +67,8 @@ export default function ProfilePage() {
       await updateDoc(userRef, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        firstName_lowercase: firstName.trim().toLowerCase(),
+        lastName_lowercase: lastName.trim().toLowerCase(),
         lastNameChange: new Date(),
       });
 

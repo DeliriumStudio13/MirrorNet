@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthContext } from '@/contexts/auth-context';
 import { RatingCard } from '@/components/dashboard/rating-card';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { standardCircles, getTraitsForCircle, getTraitsByIds } from '@/lib/traits-library';
+import { debounce } from '@/lib/debounce';
+import { trackError, trackUserAction, withPerformanceTracking, trackMetric } from '@/lib/monitoring';
 import type { CircleStats } from '@/types';
 
 export default function DashboardPage() {
@@ -13,11 +15,16 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Record<string, CircleStats>>({});
   const [loading, setLoading] = useState(true);
 
-  async function loadStats() {
-    if (!user?.uid) return;
-    
-    setLoading(true);
-    try {
+  /**
+   * Loads dashboard statistics for all circles
+   * This function can be expensive due to multiple Firestore queries
+   */
+  const loadStats = useCallback(
+    withPerformanceTracking('dashboard.load_stats', async () => {
+      if (!user?.uid) return;
+      
+      setLoading(true);
+      try {
       // Get all ratings where this user is the rated person
       const ratingsRef = collection(db, 'ratings');
       const ratingsQuery = query(
@@ -144,10 +151,12 @@ export default function DashboardPage() {
           
           // Check if user has custom traits for this circle
           let traits = getTraitsForCircle(circleId);
+          let selectedTraitIds = traits.map(t => t.id); // Default to standard trait IDs
           const userTraitsDoc = await getDoc(doc(db, 'userCircleTraits', `${user.uid}_${circleId}`));
           if (userTraitsDoc.exists()) {
             const userTraitsData = userTraitsDoc.data();
             traits = getTraitsByIds(userTraitsData.traits);
+            selectedTraitIds = userTraitsData.traits; // Use custom trait IDs
           }
           
           if (circleRatings.length === 0) {
@@ -160,15 +169,22 @@ export default function DashboardPage() {
             continue; // Use continue instead of return to process remaining circles
           }
           
-          // Calculate trait averages
+          // Calculate trait averages ONLY for currently selected traits
           const traitStats: Record<string, { avg: number; count: number }> = {};
           let totalScoreSum = 0;
           let totalRatings = 0;
           
           traits.forEach(trait => {
+            // Only calculate stats for traits that are currently selected
+            if (!selectedTraitIds.includes(trait.id)) {
+              // Skip traits that are not currently selected (but keep historical data)
+              traitStats[trait.id] = { avg: 0, count: 0 };
+              return;
+            }
+            
             const traitScores = circleRatings
               .map(rating => rating.scores[trait.id])
-              .filter(score => score !== undefined);
+              .filter(score => score !== undefined && score > 0); // Exclude unrated traits (score = 0)
             
             if (traitScores.length > 0) {
               const avg = traitScores.reduce((sum, score) => sum + score, 0) / traitScores.length;
@@ -196,15 +212,43 @@ export default function DashboardPage() {
       }
       
       setStats(calculatedStats);
+      
+      // Track metrics for monitoring
+      trackMetric({
+        name: 'dashboard.circles_loaded',
+        value: Object.keys(calculatedStats).length,
+      });
+      
     } catch (error) {
-      console.error('Error loading stats:', error);
+      trackError(error as Error, {
+        userId: user?.uid,
+        component: 'DashboardPage',
+        action: 'load_stats',
+      });
+      throw error; // Re-throw for performance tracking
     } finally {
       setLoading(false);
     }
-  }
+  }), [user?.uid]);
+
+  /**
+   * Debounced version of loadStats to reduce Firestore costs
+   * Batches rapid updates (like multiple member changes) into a single reload
+   * Waits 3 seconds after last change before executing
+   */
+  const debouncedLoadStats = useCallback(
+    debounce(loadStats, 3000, { trailing: true }),
+    [loadStats]
+  );
 
   useEffect(() => {
     if (!user?.uid) return;
+
+    // Track dashboard visit
+    trackUserAction('dashboard_viewed', user.uid, {
+      isPremium: user.isPremium,
+      timestamp: new Date(),
+    });
 
     // Set up listeners for member changes
     const unsubscribers: (() => void)[] = [];
@@ -221,8 +265,8 @@ export default function DashboardPage() {
       );
 
       const unsubscribe = onSnapshot(membersQuery, () => {
-        console.log(`${circleId} circle members changed, reloading stats`);
-        loadStats(); // Reload stats when members change
+        console.log(`${circleId} circle members changed, scheduling debounced reload`);
+        debouncedLoadStats(); // Use debounced version to batch updates
       });
       unsubscribers.push(unsubscribe);
     });
@@ -231,9 +275,12 @@ export default function DashboardPage() {
     loadStats();
 
     return () => {
+      // Clean up listeners
       unsubscribers.forEach(unsubscribe => unsubscribe());
+      // Cancel any pending debounced calls to prevent memory leaks
+      debouncedLoadStats.cancel();
     };
-  }, [user?.uid]);
+  }, [user?.uid, debouncedLoadStats, loadStats]);
 
   if (!user) {
     return null;
@@ -243,7 +290,10 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading your circles...</p>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

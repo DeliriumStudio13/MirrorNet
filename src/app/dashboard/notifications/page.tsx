@@ -117,47 +117,45 @@ export default function NotificationsPage() {
     });
     unsubscribers.push(invitationsUnsubscribe);
 
-    // Listen for reveal requests (only if premium)
-    if (user.isPremium) {
-      const revealRequestsQuery = query(
-        collection(db, 'revealRequests'),
-        where('toUid', '==', user.uid),
-        where('status', '==', 'pending')
-      );
+    // Listen for reveal requests (all users can receive them)
+    const revealRequestsQuery = query(
+      collection(db, 'revealRequests'),
+      where('toUid', '==', user.uid),
+      where('status', '==', 'pending')
+    );
 
-      const revealRequestsUnsubscribe = onSnapshot(revealRequestsQuery, async (snapshot) => {
-        const requestsWithUsers: RevealRequest[] = [];
+    const revealRequestsUnsubscribe = onSnapshot(revealRequestsQuery, async (snapshot) => {
+      const requestsWithUsers: RevealRequest[] = [];
 
-        for (const docSnapshot of snapshot.docs) {
-          const requestData = docSnapshot.data();
-          const request: RevealRequest = {
-            id: docSnapshot.id,
-            fromUid: requestData.fromUid,
-            toUid: requestData.toUid,
-            ratingId: requestData.ratingId,
-            status: requestData.status,
-            createdAt: requestData.createdAt,
+      for (const docSnapshot of snapshot.docs) {
+        const requestData = docSnapshot.data();
+        const request: RevealRequest = {
+          id: docSnapshot.id,
+          fromUid: requestData.fromUid,
+          toUid: requestData.toUid,
+          ratingId: requestData.ratingId,
+          status: requestData.status,
+          createdAt: requestData.createdAt,
+        };
+
+        // Fetch requester's info
+        const fromUserDocRef = doc(db, 'users', request.fromUid);
+        const fromUserDoc = await getDoc(fromUserDocRef);
+        
+        if (fromUserDoc.exists()) {
+          const userData = fromUserDoc.data();
+          request.fromUser = {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
           };
-
-          // Fetch requester's info
-          const fromUserDocRef = doc(db, 'users', request.fromUid);
-          const fromUserDoc = await getDoc(fromUserDocRef);
-          
-          if (fromUserDoc.exists()) {
-            const userData = fromUserDoc.data();
-            request.fromUser = {
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-            };
-          }
-
-          requestsWithUsers.push(request);
         }
 
-        setRevealRequests(requestsWithUsers);
-      });
-      unsubscribers.push(revealRequestsUnsubscribe);
-    }
+        requestsWithUsers.push(request);
+      }
+
+      setRevealRequests(requestsWithUsers);
+    });
+    unsubscribers.push(revealRequestsUnsubscribe);
 
     // Listen for family goal notifications
     const familyGoalsQuery = query(
@@ -360,8 +358,8 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121214] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#3b82f6]"></div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     );
   }
@@ -369,9 +367,9 @@ export default function NotificationsPage() {
   const totalNotifications = invitations.length + revealRequests.length + familyGoals.length;
 
   return (
-    <div className="min-h-screen bg-[#121214]">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-8 text-[#e1e1e6]">
+        <h1 className="text-2xl font-bold mb-8 text-white">
           Notifications {totalNotifications > 0 && (
             <span className="text-sm bg-blue-600 text-white px-2 py-1 rounded-full ml-2">
               {totalNotifications}
@@ -392,19 +390,17 @@ export default function NotificationsPage() {
             <Users className="h-4 w-4 inline mr-2" />
             Circle Invitations ({invitations.length})
           </button>
-          {user?.isPremium && (
-            <button
-              onClick={() => setActiveTab('reveals')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === 'reveals'
-                  ? 'text-pink-400 border-b-2 border-pink-400'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Heart className="h-4 w-4 inline mr-2" />
-              Reveal Requests ({revealRequests.length})
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab('reveals')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'reveals'
+                ? 'text-pink-400 border-b-2 border-pink-400'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Heart className="h-4 w-4 inline mr-2" />
+            Reveal Requests ({revealRequests.length})
+          </button>
           <button
             onClick={() => setActiveTab('goals')}
             className={`px-6 py-3 font-medium transition-colors ${
@@ -422,7 +418,7 @@ export default function NotificationsPage() {
         {activeTab === 'invitations' && (
           <div className="space-y-4">
             {invitations.length === 0 ? (
-              <div className="text-center text-[#a1a1aa] py-12 bg-gray-800/50 rounded-lg">
+              <div className="text-center text-gray-400 py-12 bg-gray-800/50 rounded-lg">
                 <Users className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                 <h3 className="text-lg font-medium text-white mb-2">No pending invitations</h3>
                 <p>You'll see circle invitations from other users here.</p>
@@ -431,7 +427,7 @@ export default function NotificationsPage() {
               invitations.map((invitation) => (
                 <div
                   key={invitation.id}
-                  className="bg-[#1a1b1e] rounded-xl p-6 border border-[#2a2b2e] shadow-lg"
+                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-start gap-4">
@@ -440,7 +436,7 @@ export default function NotificationsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-semibold text-[#e1e1e6]">
+                          <h3 className="text-lg font-semibold text-white">
                             Circle Invitation from {invitation.fromUser?.firstName} {invitation.fromUser?.lastName}
                           </h3>
                           {invitation.isCustomCircle && (
@@ -452,7 +448,7 @@ export default function NotificationsPage() {
                             </div>
                           )}
                         </div>
-                        <p className="text-[#a1a1aa] mt-1">
+                        <p className="text-gray-400 mt-1">
                           Wants to connect in their "{invitation.circleName}" circle
                         </p>
                       </div>
@@ -468,7 +464,7 @@ export default function NotificationsPage() {
                       <button
                         onClick={() => handleInvitation(invitation.id, false)}
                         disabled={processing[invitation.id]}
-                        className="px-4 py-2 bg-[#2a2b2e] text-[#a1a1aa] rounded-md hover:bg-[#3b3b3e] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3b3b3e] focus:ring-offset-2 focus:ring-offset-[#1a1b1e] disabled:opacity-50"
+                        className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50"
                       >
                         Decline
                       </button>
@@ -481,19 +477,19 @@ export default function NotificationsPage() {
         )}
 
         {/* Reveal Requests Tab */}
-        {activeTab === 'reveals' && user?.isPremium && (
+        {activeTab === 'reveals' && (
           <div className="space-y-4">
             {revealRequests.length === 0 ? (
-              <div className="text-center text-[#a1a1aa] py-12 bg-gray-800/50 rounded-lg">
+              <div className="text-center text-gray-400 py-12 bg-gray-800/50 rounded-lg">
                 <Heart className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                 <h3 className="text-lg font-medium text-white mb-2">No reveal requests</h3>
-                <p>People who want to know your identity in attraction ratings will appear here.</p>
+                <p>People who rated you anonymously and want to reveal their identity will appear here.</p>
               </div>
             ) : (
               revealRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="bg-[#1a1b1e] rounded-xl p-6 border border-[#2a2b2e] shadow-lg"
+                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-start gap-4">
@@ -501,14 +497,14 @@ export default function NotificationsPage() {
                         <Eye className="h-6 w-6 text-pink-400" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-[#e1e1e6]">
+                        <h3 className="text-lg font-semibold text-white">
                           Reveal Request from {request.fromUser?.firstName} {request.fromUser?.lastName}
                         </h3>
-                        <p className="text-[#a1a1aa] mt-1">
-                          Wants you to reveal your identity for an attraction rating you gave them
+                        <p className="text-gray-400 mt-1">
+                          Wants to know who gave them an anonymous rating
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
-                          They used a premium token to request this reveal
+                          If you accept, they'll be able to see that you rated them
                         </p>
                       </div>
                     </div>
@@ -524,7 +520,7 @@ export default function NotificationsPage() {
                       <button
                         onClick={() => handleRevealRequest(request.id, false)}
                         disabled={processing[request.id]}
-                        className="px-4 py-2 bg-[#2a2b2e] text-[#a1a1aa] rounded-md hover:bg-[#3b3b3e] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3b3b3e] focus:ring-offset-2 focus:ring-offset-[#1a1b1e] disabled:opacity-50 flex items-center gap-2"
+                        className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 flex items-center gap-2"
                       >
                         <EyeOff className="h-4 w-4" />
                         Decline
@@ -541,7 +537,7 @@ export default function NotificationsPage() {
         {activeTab === 'goals' && (
           <div className="space-y-4">
             {familyGoals.length === 0 ? (
-              <div className="text-center text-[#a1a1aa] py-12 bg-gray-800/50 rounded-lg">
+              <div className="text-center text-gray-400 py-12 bg-gray-800/50 rounded-lg">
                 <Users className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                 <h3 className="text-lg font-medium text-white mb-2">No family goal requests</h3>
                 <p>Family goal invitations from premium members will appear here.</p>
@@ -550,7 +546,7 @@ export default function NotificationsPage() {
               familyGoals.map((goal) => (
                 <div
                   key={goal.id}
-                  className="bg-[#1a1b1e] rounded-xl p-6 border border-[#2a2b2e] shadow-lg"
+                  className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-start gap-4">
@@ -558,10 +554,10 @@ export default function NotificationsPage() {
                         <Users className="h-6 w-6 text-red-400" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-[#e1e1e6]">
+                        <h3 className="text-lg font-semibold text-white">
                           {goal.title}
                         </h3>
-                        <p className="text-[#a1a1aa] mt-1">
+                        <p className="text-gray-400 mt-1">
                           {goal.fromUser?.firstName} {goal.fromUser?.lastName} wants to work on this relationship goal with you
                         </p>
                         <p className="text-sm text-gray-400 mt-2">
@@ -581,7 +577,7 @@ export default function NotificationsPage() {
                       <button
                         onClick={() => handleFamilyGoal(goal.id, goal.goalId, false)}
                         disabled={processing[goal.id]}
-                        className="px-4 py-2 bg-[#2a2b2e] text-[#a1a1aa] rounded-md hover:bg-[#3b3b3e] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3b3b3e] focus:ring-offset-2 focus:ring-offset-[#1a1b1e] disabled:opacity-50 flex items-center gap-2"
+                        className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 flex items-center gap-2"
                       >
                         <Users className="h-4 w-4" />
                         {processing[goal.id] ? 'Declining...' : 'Decline'}

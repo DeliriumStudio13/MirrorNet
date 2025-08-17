@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useAuthContext } from '@/contexts/auth-context';
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import Link from 'next/link';
-import { Settings, Crown, User, Shield, AlertTriangle, CreditCard } from 'lucide-react';
+import { Settings, Crown, User, Shield, AlertTriangle, CreditCard, Key, FileText, HelpCircle, ExternalLink, Lock } from 'lucide-react';
 import { createPortalSession } from '../premium/actions';
 import { PremiumBadge } from '@/components/ui/premium-badge';
 
@@ -15,6 +16,17 @@ export default function SettingsPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  // Password change states
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const handleTogglePremium = async () => {
     if (!user?.uid) return;
@@ -79,6 +91,55 @@ export default function SettingsPage() {
     }
   };
 
+  // Password change functionality
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) return;
+
+    setPasswordLoading(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    // Validation
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
+      setPasswordLoading(false);
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      setPasswordLoading(false);
+      return;
+    }
+
+    try {
+      // Re-authenticate user with current password
+      const credential = EmailAuthProvider.credential(user.email, passwordForm.currentPassword);
+      await reauthenticateWithCredential(auth.currentUser!, credential);
+      
+      // Update password
+      await updatePassword(auth.currentUser!, passwordForm.newPassword);
+      
+      setPasswordSuccess('Password updated successfully!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordChange(false);
+    } catch (err: any) {
+      console.error('Password change error:', err);
+      if (err.code === 'auth/wrong-password') {
+        setPasswordError('Current password is incorrect.');
+      } else if (err.code === 'auth/weak-password') {
+        setPasswordError('New password is too weak. Please choose a stronger password.');
+      } else if (err.code === 'auth/requires-recent-login') {
+        setPasswordError('For security, please sign out and sign back in before changing your password.');
+      } else {
+        setPasswordError('Failed to update password. Please try again.');
+      }
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
@@ -96,7 +157,7 @@ export default function SettingsPage() {
         <p className="text-gray-400">Manage your account preferences and premium features</p>
       </div>
 
-      {/* Account Info */}
+      {/* Account Information */}
       <div className="bg-gray-800 rounded-xl p-6 mb-8">
         <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
           <User className="h-5 w-5" />
@@ -149,45 +210,128 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Premium Controls */}
+      {/* Password & Security */}
       <div className="bg-gray-800 rounded-xl p-6 mb-8">
         <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-          <Crown className="h-5 w-5 text-purple-400" />
-          Premium Controls
+          <Key className="h-5 w-5 text-blue-400" />
+          Password & Security
         </h2>
         
-        <div className="space-y-6">
-          {/* Premium Toggle */}
+        <div className="space-y-4">
+          {/* Change Password */}
           <div className="border border-gray-700 rounded-lg p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h3 className="text-lg font-medium text-white mb-1">
-                  {user?.isPremium ? 'Revert to Standard' : 'Upgrade to Premium'}
-                </h3>
+                <h3 className="text-lg font-medium text-white mb-1">Change Password</h3>
                 <p className="text-gray-400 text-sm">
-                  {user?.isPremium 
-                    ? 'Test how the app works for standard users' 
-                    : 'Get access to premium features including Attraction Circle'
-                  }
+                  Update your password to keep your account secure
                 </p>
               </div>
               <button
-                onClick={handleTogglePremium}
-                disabled={processing}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  user?.isPremium
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                }`}
+                onClick={() => setShowPasswordChange(!showPasswordChange)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
-                {processing ? 'Processing...' : user?.isPremium ? 'Revert to Standard' : 'Upgrade to Premium'}
+                <Lock className="h-4 w-4" />
+                Change Password
               </button>
             </div>
+            
+            {showPasswordChange && (
+              <form onSubmit={handlePasswordChange} className="mt-4 space-y-4 border-t border-gray-700 pt-4">
+                <div>
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-white mb-1.5">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
+                    placeholder="Enter your current password"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-white mb-1.5">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                    className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
+                    placeholder="Enter new password (min 6 characters)"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-1.5">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
+                    placeholder="Confirm your new password"
+                    required
+                  />
+                </div>
+                
+                {passwordError && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">{passwordError}</p>
+                  </div>
+                )}
+                
+                {passwordSuccess && (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                    <p className="text-green-400 text-sm">{passwordSuccess}</p>
+                  </div>
+                )}
+                
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {passwordLoading ? 'Updating...' : 'Update Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordChange(false);
+                      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                      setPasswordError(null);
+                      setPasswordSuccess(null);
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* Subscription Management */}
-          {user?.isPremium && (
-            <div className="border border-gray-700 rounded-lg p-4 mb-4">
+      {/* Premium Controls */}
+      {user?.isPremium && (
+        <div className="bg-gray-800 rounded-xl p-6 mb-8">
+          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <Crown className="h-5 w-5 text-purple-400" />
+            Premium Controls
+          </h2>
+          
+          <div className="space-y-4">
+            {/* Subscription Management */}
+            <div className="border border-gray-700 rounded-lg p-4">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-lg font-medium text-white mb-1">Manage Subscription</h3>
@@ -222,12 +366,10 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          )}
 
-          {/* Token Reset */}
-          {user?.isPremium && (
+            {/* Token Reset */}
             <div className="border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-medium text-white mb-1">Reset Premium Tokens</h3>
                   <p className="text-gray-400 text-sm">
@@ -243,38 +385,61 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Testing Notice */}
-      <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-8">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 className="text-yellow-300 font-medium mb-1">Testing Environment</h3>
-            <p className="text-yellow-200 text-sm">
-              These controls are for testing purposes only. In production, premium upgrades would be handled through Stripe payment processing.
-            </p>
           </div>
         </div>
+      )}
+
+      {/* Support & Help */}
+      <div className="bg-gray-800 rounded-xl p-6 mb-8">
+        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-green-400" />
+          Support & Help
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link 
+            href="/faq"
+            className="border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition-colors group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-medium group-hover:text-blue-400 transition-colors">FAQ</h3>
+                <p className="text-gray-400 text-sm">Frequently asked questions</p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
+            </div>
+          </Link>
+          
+          <Link 
+            href="/terms"
+            className="border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition-colors group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-medium group-hover:text-blue-400 transition-colors">Terms of Service</h3>
+                <p className="text-gray-400 text-sm">Legal terms and conditions</p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
+            </div>
+          </Link>
+          
+          <Link 
+            href="/privacy"
+            className="border border-gray-700 rounded-lg p-4 hover:bg-gray-700/50 transition-colors group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-medium group-hover:text-blue-400 transition-colors">Privacy Policy</h3>
+                <p className="text-gray-400 text-sm">How we protect your data</p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
+            </div>
+          </Link>
+        </div>
       </div>
 
-      {/* Status Messages */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
-          <p className="text-red-400">{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
-          <p className="text-green-400">{success}</p>
-        </div>
-      )}
-
       {/* Privacy & Security */}
-      <div className="bg-gray-800 rounded-xl p-6">
+      <div className="bg-gray-800 rounded-xl p-6 mb-8">
         <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
           <Shield className="h-5 w-5 text-green-400" />
           Privacy & Security
@@ -303,6 +468,34 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Testing Environment Notice */}
+      {user?.isPremium && (
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-8">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-yellow-300 font-medium mb-1">Testing Environment</h3>
+              <p className="text-yellow-200 text-sm">
+                Premium controls are for testing purposes only. In production, premium upgrades would be handled through Stripe payment processing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Messages */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
+          <p className="text-red-400">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+          <p className="text-green-400">{success}</p>
+        </div>
+      )}
     </div>
   );
 }

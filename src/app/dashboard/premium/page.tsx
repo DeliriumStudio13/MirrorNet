@@ -178,9 +178,18 @@ export default function PremiumPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+              <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-orange-600/20 flex items-center justify-center">
+                <svg className="h-3 w-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <div>
-                <div className="text-white font-medium">Custom Circles</div>
+                <div className="text-white font-medium flex items-center gap-2">
+                  Custom Circles
+                  <span className="px-2 py-1 text-xs bg-orange-600/20 text-orange-400 rounded">
+                    Coming Soon
+                  </span>
+                </div>
                 <div className="text-gray-400 text-sm">Gaming, Book Club, Gym Buddies & more</div>
               </div>
             </div>
@@ -244,11 +253,18 @@ export default function PremiumPage() {
           </p>
         </div>
 
-        <div className="bg-gray-800 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="h-6 w-6 text-blue-400" />
+        <div className="bg-gray-800 rounded-xl p-6 text-center relative">
+          <div className="w-12 h-12 bg-orange-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">Custom Circles</h3>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-white">Custom Circles</h3>
+            <span className="px-2 py-1 text-xs bg-orange-600/20 text-orange-400 rounded">
+              Coming Soon
+            </span>
+          </div>
           <p className="text-gray-400 text-sm">
             Create custom circles for gaming clans, book clubs, gym buddies, and more specialized communities
           </p>

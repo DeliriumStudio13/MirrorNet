@@ -102,6 +102,7 @@ export default function FamilyCirclePage() {
   const [selectedGoal, setSelectedGoal] = useState<typeof PREDEFINED_GOALS[0] | null>(null);
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [sendingGoal, setSendingGoal] = useState(false);
+  const [processingGoal, setProcessingGoal] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -165,56 +166,54 @@ export default function FamilyCirclePage() {
 
       setMembers(uniqueMembers);
 
-      // Load family goals if premium
-      if (user.isPremium) {
-        const goalsRef = collection(db, 'familyGoals');
-        const goalsQuery = query(
-          goalsRef,
-          where('participants', 'array-contains', user.uid)
-        );
-        const goalsSnapshot = await getDocs(goalsQuery);
-        const familyGoals = await Promise.all(
-          goalsSnapshot.docs.map(async (goalDoc) => {
-            const goalData = goalDoc.data();
-            const goal = {
-              id: goalDoc.id,
-              ...goalData,
-              createdAt: goalData.createdAt?.toDate() || new Date(),
-              targetDate: goalData.targetDate?.toDate() || new Date()
-            } as FamilyGoal;
+      // Load family goals for ALL users who are participants (not just premium)
+      const goalsRef = collection(db, 'familyGoals');
+      const goalsQuery = query(
+        goalsRef,
+        where('participants', 'array-contains', user.uid)
+      );
+      const goalsSnapshot = await getDocs(goalsQuery);
+      const familyGoals = await Promise.all(
+        goalsSnapshot.docs.map(async (goalDoc) => {
+          const goalData = goalDoc.data();
+          const goal = {
+            id: goalDoc.id,
+            ...goalData,
+            createdAt: goalData.createdAt?.toDate() || new Date(),
+            targetDate: goalData.targetDate?.toDate() || new Date()
+          } as FamilyGoal;
 
-            // Fetch participant details
-            if (goal.participants && goal.participants.length > 0) {
-              const participantDetails = await Promise.all(
-                goal.participants.map(async (participantUid) => {
-                  const userRef = doc(db, 'users', participantUid);
-                  const userDoc = await getDoc(userRef);
-                  
-                  if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    return {
-                      uid: participantUid,
-                      firstName: userData.firstName,
-                      lastName: userData.lastName,
-                      avatarUrl: userData.avatarUrl,
-                      isPremium: userData.isPremium,
-                      joinedAt: new Date(), // Goals don't have specific join dates
-                      isOwner: participantUid === user.uid
-                    } as FamilyMember;
-                  }
-                  return null;
-                })
-              );
-              
-              goal.participantDetails = participantDetails.filter(Boolean) as FamilyMember[];
-            }
+          // Fetch participant details
+          if (goal.participants && goal.participants.length > 0) {
+            const participantDetails = await Promise.all(
+              goal.participants.map(async (participantUid) => {
+                const userRef = doc(db, 'users', participantUid);
+                const userDoc = await getDoc(userRef);
+                
+                if (userDoc.exists()) {
+                  const userData = userDoc.data();
+                  return {
+                    uid: participantUid,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    avatarUrl: userData.avatarUrl,
+                    isPremium: userData.isPremium,
+                    joinedAt: new Date(), // Goals don't have specific join dates
+                    isOwner: participantUid === user.uid
+                  } as FamilyMember;
+                }
+                return null;
+              })
+            );
+            
+            goal.participantDetails = participantDetails.filter(Boolean) as FamilyMember[];
+          }
 
-            return goal;
-          })
-        );
+          return goal;
+        })
+      );
 
-        setGoals(familyGoals);
-      }
+      setGoals(familyGoals);
 
     } catch (error) {
       console.error('Error loading family data:', error);
@@ -333,6 +332,34 @@ export default function FamilyCirclePage() {
     }
   };
 
+  const handleGoalAction = async (goalId: string, action: 'accept' | 'decline') => {
+    if (!user?.uid) return;
+
+    try {
+      setProcessingGoal(goalId);
+
+      const batch = writeBatch(db);
+      const goalRef = doc(db, 'familyGoals', goalId);
+      
+      if (action === 'accept') {
+        batch.update(goalRef, {
+          status: 'active'
+        });
+      } else {
+        batch.update(goalRef, {
+          status: 'declined'
+        });
+      }
+
+      await batch.commit();
+      loadFamilyData(); // Reload to show updated status
+    } catch (error) {
+      console.error('Error updating goal:', error);
+    } finally {
+      setProcessingGoal(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f1015] p-6">
@@ -438,21 +465,28 @@ export default function FamilyCirclePage() {
             </div>
           </div>
 
-          {/* Goals Section (Premium Only) */}
+          {/* Goals Section */}
           <div>
-            {user?.isPremium ? (
-              <div className="bg-[#1a1b1e] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-white">Relationship Goals</h2>
-                  {members.length > 1 && (
-                    <button
-                      onClick={() => setShowGoalModal(true)}
-                      className="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-colors text-sm"
-                    >
-                      Suggest Goal
-                    </button>
-                  )}
-                </div>
+            <div className="bg-[#1a1b1e] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-white">Relationship Goals</h2>
+                {user?.isPremium && members.length > 1 && (
+                  <button
+                    onClick={() => setShowGoalModal(true)}
+                    className="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-colors text-sm"
+                  >
+                    Suggest Goal
+                  </button>
+                )}
+                {!user?.isPremium && (
+                  <Link
+                    href="/dashboard/premium"
+                    className="bg-purple-500/10 text-purple-400 px-3 py-1 rounded-lg hover:bg-purple-500/20 transition-colors text-sm"
+                  >
+                    Go Premium
+                  </Link>
+                )}
+              </div>
 
                 {goals.length > 0 ? (
                   <div className="space-y-4">
@@ -488,7 +522,7 @@ export default function FamilyCirclePage() {
                           </div>
                         )}
                         
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center justify-between text-xs mb-3">
                           <span className={`px-2 py-1 rounded-full ${
                             goal.status === 'active' ? 'bg-green-500/20 text-green-400' :
                             goal.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -501,6 +535,41 @@ export default function FamilyCirclePage() {
                             Due {formatDate(goal.targetDate)}
                           </span>
                         </div>
+
+                        {/* Goal Actions for Standard Users */}
+                        {goal.status === 'pending' && goal.createdBy !== user?.uid && (
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => handleGoalAction(goal.id, 'accept')}
+                              disabled={processingGoal === goal.id}
+                              className="flex-1 bg-green-500/20 text-green-400 px-3 py-2 rounded-lg hover:bg-green-500/30 transition-colors text-sm disabled:opacity-50"
+                            >
+                              {processingGoal === goal.id ? 'Processing...' : 'Accept Goal'}
+                            </button>
+                            <button
+                              onClick={() => handleGoalAction(goal.id, 'decline')}
+                              disabled={processingGoal === goal.id}
+                              className="flex-1 bg-red-500/20 text-red-400 px-3 py-2 rounded-lg hover:bg-red-500/30 transition-colors text-sm disabled:opacity-50"
+                            >
+                              {processingGoal === goal.id ? 'Processing...' : 'Decline'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Show tips for active goals */}
+                        {goal.status === 'active' && goal.tips && goal.tips.length > 0 && (
+                          <div className="mt-3 bg-[#1a1b1e] rounded-lg p-3">
+                            <p className="text-xs font-medium text-blue-300 mb-2">💡 Tips to succeed:</p>
+                            <ul className="text-xs text-gray-400 space-y-1">
+                              {goal.tips.slice(0, 3).map((tip, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                  <span className="text-blue-400 mt-0.5">•</span>
+                                  {tip}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -508,29 +577,24 @@ export default function FamilyCirclePage() {
                   <div className="text-center py-8">
                     <Target className="h-12 w-12 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400">No relationship goals yet</p>
-                    {members.length > 1 && (
+                    {user?.isPremium && members.length > 1 && (
                       <p className="text-sm text-gray-500 mt-2">
                         Suggest a goal to start improving together
                       </p>
                     )}
+                    {!user?.isPremium && (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 mb-2">
+                          Premium members can invite you to work on relationship goals together
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          You'll be notified when you're invited to participate in family goals
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="bg-[#1a1b1e] rounded-xl p-6">
-                <div className="text-center py-8">
-                  <Target className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">Premium Feature</h3>
-                  <p className="text-gray-400 mb-4">Unlock relationship goals and collaborative improvement tips</p>
-                  <Link
-                    href="/dashboard/premium"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-colors text-sm"
-                  >
-                    Go Premium
-                  </Link>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
