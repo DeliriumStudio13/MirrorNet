@@ -1,13 +1,24 @@
 {
   "name": "MirrorNet™ - Personal Growth Through Feedback",
   "short_name": "MirrorNet™",
-  "description": "Receive structured, anonymous feedback from different circles in your life",
+  "description": "Receive structured, anonymous feedback from different circles in your life to accelerate personal growth",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "lifestyle", "social"],
+  "categories": ["productivity", "lifestyle", "social", "health"],
+  "id": "com.mirrornet.app",
+  "version": "1.0.0",
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/favicon.svg",
@@ -16,21 +27,69 @@
       "purpose": "any"
     },
     {
-      "src": "/app-icon.svg",
+      "src": "/app-icon.svg", 
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192", 
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png", 
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "lang": "en",
-  "dir": "ltr",
+  "dir": "ltr", 
   "scope": "/",
   "screenshots": [
     {
-      "src": "/app-icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "MirrorNet Dashboard"
+    },
+    {
+      "src": "/screenshot-mobile.png", 
+      "sizes": "360x800",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard", 
+      "description": "Access your MirrorNet dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Premium",
+      "short_name": "Premium",
+      "description": "Upgrade to premium features", 
+      "url": "/dashboard/premium",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
     }
   ]
 }
