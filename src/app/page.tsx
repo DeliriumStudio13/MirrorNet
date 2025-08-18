@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthContext } from '@/contexts/auth-context';
 import { SignUpForm } from '@/components/auth/signup-form';
 import { SignInForm } from '@/components/auth/signin-form';
-import { Frame, Shield, Users, TrendingUp, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Users, TrendingUp, Star, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -65,7 +65,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <Frame className="h-8 w-8 text-purple-500" />
+              <img src="/mirrornet-logo.png" alt="MirrorNet Logo" className="h-8 w-8" />
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 MirrorNet™
               </span>
@@ -88,14 +88,11 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Content */}
             <div className="text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start mb-6">
-                <Frame className="h-16 w-16 text-purple-500 mr-4" />
-                <h1 className="text-4xl md:text-6xl font-bold">
-                  <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    MirrorNet™
-                  </span>
-                </h1>
-              </div>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-center lg:text-left">
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  MirrorNet™
+                </span>
+              </h1>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
                 Personal Growth Through
                 <span className="text-purple-400"> Trusted Feedback</span>
@@ -309,7 +306,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <Frame className="h-8 w-8 text-purple-500" />
+                <img src="/mirrornet-logo.png" alt="MirrorNet Logo" className="h-8 w-8" />
                 <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                   MirrorNet™
                 </span>

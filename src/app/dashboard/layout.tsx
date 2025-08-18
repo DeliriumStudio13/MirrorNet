@@ -10,7 +10,7 @@ import { PremiumBadge } from '@/components/ui/premium-badge';
 import { Avatar } from '@/components/ui/avatar';
 import { NotificationPopup } from '@/components/ui/notification-popup';
 import { useNotificationContext } from '@/contexts/notification-context';
-import { Settings, Bell, Frame, Search, Home, Heart, BookOpen } from 'lucide-react';
+import { Settings, Bell, Search, Home, Heart, BookOpen } from 'lucide-react';
 
 
 export default function DashboardLayout({
@@ -40,7 +40,7 @@ export default function DashboardLayout({
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="flex items-center justify-center mb-6">
-            <Frame className="h-12 w-12 text-purple-500 mr-3" />
+            <img src="/mirrornet-logo.png" alt="MirrorNet Logo" className="h-12 w-12 mr-3" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               MirrorNet™
             </span>
@@ -63,25 +63,25 @@ export default function DashboardLayout({
       <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-6">
-              <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-                <Frame className="h-8 w-8 text-purple-500" />
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <div className="flex items-center space-x-4 md:space-x-8">
+              <Link href="/dashboard" className="flex items-center space-x-2 md:space-x-3 hover:opacity-80 transition-opacity">
+                <img src="/mirrornet-logo.png" alt="MirrorNet Logo" className="h-6 w-6 md:h-8 md:w-8" />
+                <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                   MirrorNet™
                 </span>
               </Link>
-              <div className="hidden md:flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg font-medium text-gray-300">
-                    Welcome, <span className="text-white">{user.firstName}</span>
+              <div className="hidden md:flex lg:flex items-center space-x-2 lg:space-x-3">
+                <div className="flex items-center space-x-1 lg:space-x-2">
+                  <span className="text-sm xl:text-lg font-medium text-gray-300">
+                    <span className="hidden xl:inline">Welcome, </span><span className="text-white">{user.firstName}</span>
                   </span>
                   {user.isPremium && <PremiumBadge size="sm" />}
                 </div>
                 <Avatar
                   src={user.avatarUrl}
                   alt={`${user.firstName}'s profile`}
-                  size={32}
-                  className="border-2 border-transparent"
+                  size={28}
+                  className="border-2 border-transparent lg:w-8 lg:h-8"
                 />
               </div>
             </div>
@@ -118,11 +118,11 @@ export default function DashboardLayout({
             </div>
 
             {/* Desktop navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <nav className="flex items-center space-x-1 mr-6">
+            <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
+              <nav className="flex items-center space-x-1 mr-3 lg:mr-6">
                 <Link
                   href="/dashboard"
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard')
                       ? 'bg-gray-800 text-white'
                       : 'text-gray-300 hover:text-white hover:bg-gray-800'
@@ -133,7 +133,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/search"
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium rounded-lg transition-colors ${
                     isActive('/dashboard/search')
                       ? 'bg-gray-800 text-white'
                       : 'text-gray-300 hover:text-white hover:bg-gray-800'
@@ -193,14 +193,14 @@ export default function DashboardLayout({
                 {!user.isPremium && (
                   <Link
                     href="/dashboard/premium"
-                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
+                    className="px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
                   >
                     Go Premium
                   </Link>
                 )}
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   Sign Out
                 </button>

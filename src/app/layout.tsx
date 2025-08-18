@@ -14,14 +14,9 @@ export const metadata: Metadata = {
   creator: 'MirrorNet™',
   publisher: 'MirrorNet™',
   icons: {
-    icon: [
-      { url: `/favicon.svg?v=${Date.now()}`, type: 'image/svg+xml' },
-      { url: `/favicon.svg?v=${Date.now()}`, sizes: '32x32', type: 'image/svg+xml' },
-    ],
-    shortcut: `/favicon.svg?v=${Date.now()}`,
-    apple: [
-      { url: `/app-icon.svg?v=${Date.now()}`, sizes: '180x180', type: 'image/svg+xml' },
-    ],
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/mirrornet-logo.png',
   },
   manifest: '/manifest.json',
 
@@ -50,6 +45,9 @@ export default function RootLayout({
         <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
         <meta name="pragma" content="no-cache" />
         <meta name="expires" content="0" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png" />
       </head>
       <body className={inter.className}>
         <ClientProviders>

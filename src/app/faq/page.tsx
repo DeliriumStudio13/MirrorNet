@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Frame, ArrowLeft, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 
 export default function FAQPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -65,7 +65,7 @@ export default function FAQPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-3">
-              <Frame className="h-8 w-8 text-purple-500" />
+              <img src="/mirrornet-logo.png" alt="MirrorNet Logo" className="h-8 w-8" />
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 MirrorNet™
               </span>
