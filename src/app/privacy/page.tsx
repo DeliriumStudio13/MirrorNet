@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
         <div className="bg-gray-800 rounded-xl p-8 border border-gray-700">
           <h1 className="text-3xl font-bold text-white mb-8">Privacy Policy</h1>
           <p className="text-gray-300 mb-8">
-            <strong>Effective Date:</strong> January 1, 2024
+            <strong>Effective Date:</strong> January 1, 2025
           </p>
 
           <div className="space-y-8 text-gray-300">

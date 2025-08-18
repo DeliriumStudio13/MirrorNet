@@ -70,11 +70,17 @@ export default function DashboardLayout({
                   MirrorNet™
                 </span>
               </Link>
-              <div className="hidden md:flex items-center">
+              <div className="hidden md:flex items-center space-x-3">
                 <span className="text-lg font-medium text-gray-300">
                   Welcome, <span className="text-white">{user.firstName}</span>
                   {user.isPremium && <span className="ml-2"><PremiumBadge size="sm" /></span>}
                 </span>
+                <Avatar
+                  src={user.avatarUrl}
+                  alt={`${user.firstName}'s profile`}
+                  size={32}
+                  className="border-2 border-transparent"
+                />
               </div>
             </div>
 
@@ -175,17 +181,6 @@ export default function DashboardLayout({
                 </Link>
               </nav>
               <div className="flex items-center space-x-4 border-l border-gray-700 pl-4">
-                <Link
-                  href="/dashboard/profile"
-                  className="flex items-center space-x-3 text-sm text-gray-300 hover:text-white transition-colors group"
-                >
-                  <Avatar
-                    src={user.avatarUrl}
-                    alt={`${user.firstName}'s profile`}
-                    size={32}
-                    className="border-2 border-transparent group-hover:border-purple-400 transition-colors"
-                  />
-                </Link>
                 <Link
                   href="/dashboard/settings"
                   className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
