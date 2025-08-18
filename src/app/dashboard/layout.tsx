@@ -71,10 +71,12 @@ export default function DashboardLayout({
                 </span>
               </Link>
               <div className="hidden md:flex items-center space-x-3">
-                <span className="text-lg font-medium text-gray-300">
-                  Welcome, <span className="text-white">{user.firstName}</span>
-                  {user.isPremium && <span className="ml-2"><PremiumBadge size="sm" /></span>}
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-medium text-gray-300">
+                    Welcome, <span className="text-white">{user.firstName}</span>
+                  </span>
+                  {user.isPremium && <PremiumBadge size="sm" />}
+                </div>
                 <Avatar
                   src={user.avatarUrl}
                   alt={`${user.firstName}'s profile`}
