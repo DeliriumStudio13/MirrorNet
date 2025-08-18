@@ -586,13 +586,48 @@ useEffect(() => {
 - **Profile Pictures**: Firebase Storage integration with error handling and loading states
 - **Monthly Name Change Limit**: Users can only change names once per month (tracked via `lastNameChange` field)
 
+## 🔧 Development Environment & Workflow
+
+### **Current Status (December 2024)**
+- **Production Environment**: ✅ **Fully operational** on Vercel (`https://mirrornet.net`)
+- **Local Development**: ⚠️ **Known issues** with Next.js dev server routing
+- **Deployment Workflow**: Using **Vercel preview deployments** for testing
+
+### **Local Development Issue**
+- **Symptom**: `npm run dev` returns 404 for root route (`/`) despite correct file structure
+- **Affected**: Both development server (`npm run dev`) and local production builds (`npm run build`)
+- **Root Cause**: Next.js only compiles `/_not-found/page`, doesn't recognize main `page.tsx`
+- **Production Impact**: ✅ **None** - Vercel builds work perfectly (production fully functional)
+- **Status**: Under investigation, using workaround workflow
+
+### **Recommended Development Workflow**
+Since local development server has routing issues, use Vercel preview deployments:
+
+1. **Feature Development**: Create feature branch from `main`
+2. **Testing**: Push to branch → Vercel creates automatic preview deployment
+3. **Validation**: Test on preview URL (e.g., `https://mirrornet-git-feature-branch.vercel.app`)
+4. **Production**: Merge to `main` → Automatic production deployment
+5. **Cleanup**: Delete feature branch to maintain tidy repository
+
+### **Environment Configuration**
+- **Local**: `.env.local` configured for `http://localhost:3000` (when working)
+- **Production**: Vercel environment variables for `https://mirrornet.net`
+- **Separation**: No manual switching required between environments
+- **Git Repository**: Clean main branch, temporary feature branches for development
+
+### **Branch Strategy**
+- **Main Branch**: Always production-ready, matches live site
+- **Feature Branches**: Temporary branches for new features (deleted after merge)
+- **Repository**: Kept tidy with minimal branch clutter
+
 ## 📋 Future Roadmap
 
-### **Immediate Priorities**
-1. **Production Domain Setup** - Configure real domain and update Firebase authorized domains
-2. **Mobile Responsiveness** improvements
-3. **Performance Optimization** for large datasets
-4. **Email Notifications** system
+### **Immediate Priorities** 
+1. ✅ **Production Domain Setup** - COMPLETED: Custom domain (mirrornet.net) deployed and operational
+2. **Premium Features Update** - Update premium features messaging across landing page and dashboard  
+3. **2025 Copyright Update** - Update copyright year across all pages
+4. **Dashboard UI Enhancement** - Move welcome message and avatar to left side of header
+5. **Play Store Submission** - Complete "Coming Soon" app listing for Google Play Store
 
 ### **Feature Enhancements**
 1. **Advanced Analytics** for circle performance
@@ -616,14 +651,25 @@ This project is **production-ready** with a solid foundation. The architecture i
 - **Enterprise Security** - Firebase Auth, Firestore rules, email enumeration prevention
 
 **🎯 Ready for Production:**
-- **Domain Setup** - Add production domain to Firebase authorized domains
-- **Environment Variables** - Update URLs from ngrok to production domain
-- **Stripe Configuration** - Update webhook URLs to production endpoints
+- ✅ **Domain Setup** - COMPLETED: Production domain configured and operational
+- ✅ **Environment Variables** - COMPLETED: Production URLs configured  
+- ✅ **Stripe Configuration** - COMPLETED: Production webhook URLs configured
 
 **🚀 Next Phase Opportunities:**
-- Mobile app development
+- Mobile app development (PWA to Play Store/App Store)
 - Advanced analytics dashboard  
 - Performance optimization for scale
 - Email notification system
+
+**⚠️ Pending Updates (Ready to Deploy):**
+- **Premium Features Messaging**: Update premium features to include:
+  - Exclusive Attraction Circle access
+  - 3 Premium Tokens monthly
+  - Set Family Goals capability
+  - Early access to new features  
+  - Premium supporter badge
+- **Copyright Update**: Change 2024 → 2025 across all pages
+- **Dashboard UI**: Move welcome message and avatar to left side of header
+- **FAQ Updates**: Update premium-related questions with correct information
 
 The database schema is well-designed, the real-time features work reliably, the premium subscription system is fully operational, and the authentication system meets enterprise security standards. The application is ready for users and monetization with industry-standard security measures.

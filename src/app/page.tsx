@@ -42,7 +42,7 @@ export default function LandingPage() {
     },
     {
       question: "What's the difference between Free and Premium?",
-      answer: "All basic features are free forever, including Family, Friends, and Work circles. Premium users get exclusive access to Attraction Circle, advanced analytics, and early access to new features."
+      answer: "All basic features are free forever, including Family, Friends, and Work circles. Premium users get exclusive Attraction Circle access, 3 Premium Tokens monthly, Family Goals, early access to new features, and a premium supporter badge."
     },
     {
       question: "How do I invite people to my circles?",
@@ -233,15 +233,23 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center text-gray-300">
                   <Star className="w-5 h-5 text-purple-400 mr-3" />
-                  Attraction Circle access
+                  Exclusive Attraction Circle access
                 </li>
                 <li className="flex items-center text-gray-300">
                   <Star className="w-5 h-5 text-purple-400 mr-3" />
-                  Advanced analytics & insights
+                  3 Premium Tokens monthly
+                </li>
+                <li className="flex items-center text-gray-300">
+                  <Star className="w-5 h-5 text-purple-400 mr-3" />
+                  Set Family Goals
                 </li>
                 <li className="flex items-center text-gray-300">
                   <Star className="w-5 h-5 text-purple-400 mr-3" />
                   Early access to new features
+                </li>
+                <li className="flex items-center text-gray-300">
+                  <Star className="w-5 h-5 text-purple-400 mr-3" />
+                  Premium supporter badge
                 </li>
               </ul>
               <button
@@ -332,7 +340,7 @@ export default function LandingPage() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400">
-              © 2024 MirrorNet™. All rights reserved.
+              © 2025 MirrorNet™. All rights reserved.
             </p>
           </div>
         </div>

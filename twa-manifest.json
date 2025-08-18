@@ -1,0 +1,59 @@
+{
+  "packageId": "net.mirrornet.twa",
+  "host": "mirrornet.net",
+  "name": "MirrorNet™",
+  "launcherName": "MirrorNet™",
+  "display": "standalone",
+  "themeColor": "#8B5CF6",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#1E1B4B",
+  "enableNotifications": true,
+  "startUrl": "https://mirrornet.net/",
+  "iconUrl": "https://mirrornet.net/favicon.svg",
+  "maskableIconUrl": "https://mirrornet.net/app-icon.svg",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\maxch\\MirrorNetPro\\android.keystore",
+    "alias": "mirrornet-key"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "shortName": "Dashboard",
+      "url": "https://mirrornet.net/dashboard",
+      "chosenIconUrl": "https://mirrornet.net/favicon.svg"
+    },
+    {
+      "name": "Premium",
+      "shortName": "Premium",
+      "url": "https://mirrornet.net/dashboard/premium",
+      "chosenIconUrl": "https://mirrornet.net/favicon.svg"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://mirrornet.net/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://mirrornet.net/",
+  "minSdkVersion": 21,
+  "orientation": "portrait-primary",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "focus-existing",
+  "appVersion": "1"
+}

@@ -14,7 +14,7 @@ export default function FAQPage() {
     },
     {
       question: "What's the difference between Free and Premium?",
-      answer: "All basic features are free forever, including Family, Friends, Work, and General circles. Premium users get exclusive access to Attraction Circle, advanced analytics, custom trait selection, relationship goals, and early access to new features. You also get premium tokens to unlock additional customization options."
+      answer: "All basic features are free forever, including Family, Friends, Work, and General circles. Premium users get exclusive Attraction Circle access, 3 Premium Tokens monthly, Family Goals, early access to new features, and a premium supporter badge to show their support for MirrorNet."
     },
     {
       question: "How do I invite people to my circles?",
@@ -30,7 +30,7 @@ export default function FAQPage() {
     },
     {
       question: "What are Premium Tokens and how do they work?",
-      answer: "Premium tokens are credits that allow you to unlock advanced features like custom trait selection for your circles. Premium subscribers receive tokens monthly, and you can use them to personalize your feedback experience beyond the standard traits."
+      answer: "Premium tokens are credits that allow you to unlock advanced features like rating anyone in the Attraction Circle and requesting identity reveals. Premium subscribers receive 3 tokens monthly, and you can use them for enhanced interactions and personalized experiences within MirrorNet."
     },
     {
       question: "Is my data safe and private?",

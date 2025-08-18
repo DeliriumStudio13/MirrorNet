@@ -152,45 +152,36 @@ export default function PremiumPage() {
             <div className="flex items-start gap-3">
               <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-white font-medium">Attraction Circle Access</div>
-                <div className="text-gray-400 text-sm">Rate and see attraction feedback</div>
+                <div className="text-white font-medium">Exclusive Attraction Circle Access</div>
+                <div className="text-gray-400 text-sm">Rate and see attraction feedback from your network</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-white font-medium">3 Premium Tokens</div>
-                <div className="text-gray-400 text-sm">Rate anyone, request reveals</div>
+                <div className="text-white font-medium">3 Premium Tokens Monthly</div>
+                <div className="text-gray-400 text-sm">Rate anyone and request identity reveals</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-white font-medium">View Received Ratings</div>
-                <div className="text-gray-400 text-sm">See who finds you attractive</div>
+                <div className="text-white font-medium">Set Family Goals</div>
+                <div className="text-gray-400 text-sm">Create and track relationship goals with family members</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-white font-medium">Identity Reveal Control</div>
-                <div className="text-gray-400 text-sm">Choose when to reveal yourself</div>
+                <div className="text-white font-medium">Early Access to New Features</div>
+                <div className="text-gray-400 text-sm">Be the first to experience upcoming MirrorNet features</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="h-5 w-5 mt-0.5 flex-shrink-0 rounded-full bg-orange-600/20 flex items-center justify-center">
-                <svg className="h-3 w-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+              <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-white font-medium flex items-center gap-2">
-                  Custom Circles
-                  <span className="px-2 py-1 text-xs bg-orange-600/20 text-orange-400 rounded">
-                    Coming Soon
-                  </span>
-                </div>
-                <div className="text-gray-400 text-sm">Gaming, Book Club, Gym Buddies & more</div>
+                <div className="text-white font-medium">Premium Supporter Badge</div>
+                <div className="text-gray-400 text-sm">Show your support for MirrorNet with exclusive badge</div>
               </div>
             </div>
             <div className="flex items-start gap-3">
