@@ -72,17 +72,19 @@ export default function DashboardLayout({
               </Link>
               <div className="hidden md:flex lg:flex items-center space-x-2 lg:space-x-3">
                 <div className="flex items-center space-x-1 lg:space-x-2">
-                  <span className="text-sm xl:text-lg font-medium text-gray-300">
-                    <span className="hidden xl:inline">Welcome, </span><span className="text-white">{user.firstName}</span>
-                  </span>
+                  <Link href="/dashboard/profile" className="text-sm xl:text-lg font-medium text-gray-300 hover:text-white transition-colors cursor-pointer">
+                    <span className="hidden xl:inline">Welcome, </span><span className="text-white hover:text-purple-300 transition-colors">{user.firstName}</span>
+                  </Link>
                   {user.isPremium && <PremiumBadge size="sm" />}
                 </div>
-                <Avatar
-                  src={user.avatarUrl}
-                  alt={`${user.firstName}'s profile`}
-                  size={28}
-                  className="border-2 border-transparent lg:w-8 lg:h-8"
-                />
+                <Link href="/dashboard/profile">
+                  <Avatar
+                    src={user.avatarUrl}
+                    alt={`${user.firstName}'s profile`}
+                    size={28}
+                    className="border-2 border-transparent lg:w-8 lg:h-8 cursor-pointer hover:border-purple-400 transition-colors"
+                  />
+                </Link>
               </div>
             </div>
 

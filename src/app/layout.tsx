@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   creator: 'MirrorNet™',
   publisher: 'MirrorNet™',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', type: 'image/x-icon' },
+      { url: '/mirrornet-logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/mirrornet-logo.png', sizes: '16x16', type: 'image/png' },
+    ],
     shortcut: '/favicon.ico',
     apple: '/mirrornet-logo.png',
   },
@@ -45,9 +49,11 @@ export default function RootLayout({
         <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
         <meta name="pragma" content="no-cache" />
         <meta name="expires" content="0" />
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png" />
+        <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=3" />
+        <link rel="icon" href="/mirrornet-logo.png?v=3" sizes="32x32" type="image/png" />
+        <link rel="icon" href="/mirrornet-logo.png?v=3" sizes="16x16" type="image/png" />
       </head>
       <body className={inter.className}>
         <ClientProviders>
