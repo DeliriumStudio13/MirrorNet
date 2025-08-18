@@ -184,13 +184,7 @@ export default function PremiumPage() {
                 <div className="text-gray-400 text-sm">Show your support for MirrorNet with exclusive badge</div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="text-white font-medium">Priority Support</div>
-                <div className="text-gray-400 text-sm">Get help when you need it</div>
-              </div>
-            </div>
+
           </div>
 
           {/* Upgrade Button */}

@@ -49,11 +49,13 @@ export default function RootLayout({
         <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
         <meta name="pragma" content="no-cache" />
         <meta name="expires" content="0" />
-        <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
-        <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=3" />
-        <link rel="icon" href="/mirrornet-logo.png?v=3" sizes="32x32" type="image/png" />
-        <link rel="icon" href="/mirrornet-logo.png?v=3" sizes="16x16" type="image/png" />
+        <link rel="icon" href="/favicon.ico?v=4&t=1735037200" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico?v=4&t=1735037200" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=4&t=1735037200" />
+        <link rel="icon" href="/mirrornet-logo.png?v=4&t=1735037200" sizes="32x32" type="image/png" />
+        <link rel="icon" href="/mirrornet-logo.png?v=4&t=1735037200" sizes="16x16" type="image/png" />
+        <meta name="msapplication-TileImage" content="/mirrornet-logo.png?v=4&t=1735037200" />
+        <meta name="theme-color" content="#8B5CF6" />
       </head>
       <body className={inter.className}>
         <ClientProviders>
