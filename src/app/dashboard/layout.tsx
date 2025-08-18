@@ -76,9 +76,9 @@ export default function DashboardLayout({
                   {user.isPremium && <span className="ml-2"><PremiumBadge size="sm" /></span>}
                 </span>
                 <Avatar 
-                  src={user.avatarUrl || user.profilePicture} 
+                  src={user.avatarUrl} 
                   alt={user.firstName} 
-                  size="sm" 
+                  size={32} 
                 />
               </div>
             </div>
