@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: 'MirrorNet™',
     images: [
       {
-        url: '/mirrornet-logo.png',
+        url: '/mirrornet-logo.png?v=10',
         width: 1200,
         height: 630,
         alt: 'MirrorNet™ Logo',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'MirrorNet™ - Personal Growth Through Feedback',
     description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
-    images: ['/mirrornet-logo.png'],
+    images: ['/mirrornet-logo.png?v=10'],
   },
   other: {
     'cache-control': 'no-cache, no-store, must-revalidate',
@@ -93,42 +93,24 @@ export default function RootLayout({
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
-        {/* Nuclear option: Runtime favicon injection with timestamp */}
+        {/* Gentle favicon injection - less aggressive approach */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Remove any existing favicons aggressively
-                var links = document.querySelectorAll('link[rel*="icon"]');
-                links.forEach(function(link) { link.remove(); });
-                
-                // Add our favicon with maximum priority and current timestamp
-                var timestamp = Date.now();
-                var favicon = document.createElement('link');
-                favicon.rel = 'icon';
-                favicon.type = 'image/x-icon';
-                favicon.href = '/favicon.ico?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
-                document.head.insertBefore(favicon, document.head.firstChild);
-                
-                // Add PNG version with timestamp
-                var pngIcon = document.createElement('link');
-                pngIcon.rel = 'icon';
-                pngIcon.type = 'image/png';
-                pngIcon.sizes = '32x32';
-                pngIcon.href = '/mirrornet-logo.png?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
-                document.head.insertBefore(pngIcon, document.head.firstChild);
-                
-                // Force page to reload favicon after 1 second
-                setTimeout(function() {
-                  var head = document.head;
-                  var links = head.querySelectorAll('link[rel*="icon"]');
-                  links.forEach(function(link) {
-                    var newLink = link.cloneNode();
-                    newLink.href = link.href + '&reload=' + Date.now();
-                    head.insertBefore(newLink, link);
-                    head.removeChild(link);
-                  });
-                }, 1000);
+                // Only run after page is loaded
+                window.addEventListener('load', function() {
+                  // Check if our favicon is already loaded
+                  var currentFavicon = document.querySelector('link[rel="icon"][href*="favicon.ico"]');
+                  if (!currentFavicon || !currentFavicon.href.includes('v=10')) {
+                    // Add our favicon gently
+                    var favicon = document.createElement('link');
+                    favicon.rel = 'icon';
+                    favicon.type = 'image/x-icon';
+                    favicon.href = '/favicon.ico?v=10&t=${Date.now()}&force=refresh';
+                    document.head.appendChild(favicon);
+                  }
+                });
               })();
             `,
           }}
