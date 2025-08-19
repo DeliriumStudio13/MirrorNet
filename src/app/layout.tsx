@@ -15,6 +15,32 @@ export const metadata: Metadata = {
   publisher: 'MirrorNet™',
   // Remove icons from metadata to prevent conflicts with manual head links
   manifest: '/manifest.json',
+  metadataBase: new URL('https://mirrornet.net'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'MirrorNet™ - Personal Growth Through Feedback',
+    description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
+    url: 'https://mirrornet.net',
+    siteName: 'MirrorNet™',
+    images: [
+      {
+        url: '/mirrornet-logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'MirrorNet™ Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MirrorNet™ - Personal Growth Through Feedback',
+    description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
+    images: ['/mirrornet-logo.png'],
+  },
   other: {
     'cache-control': 'no-cache, no-store, must-revalidate',
     'pragma': 'no-cache',
@@ -40,6 +66,14 @@ export default function RootLayout({
         <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
         <meta name="pragma" content="no-cache" />
         <meta name="expires" content="0" />
+        {/* Enhanced SEO and Social Media Meta Tags */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
+        <meta name="application-name" content="MirrorNet™" />
+        <meta name="apple-mobile-web-app-title" content="MirrorNet™" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="canonical" href="https://mirrornet.net" />
         {/* NUCLEAR FAVICON OVERRIDE - Multiple declarations to force Vercel compliance */}
         <link rel="icon" href="/favicon.ico?v=5&t=1735059600&force=true" type="image/x-icon" sizes="any" />
         <link rel="shortcut icon" href="/favicon.ico?v=5&t=1735059600&force=true" type="image/x-icon" />
