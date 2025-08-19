@@ -148,15 +148,15 @@ export default function PrivacyPolicy() {
               <p>
                 If you have any questions about this Privacy Policy or our data practices, please contact us at:
                 <br />
-                <a href="mailto:deliriumstudio@mirrornet.net" className="text-purple-400 hover:text-purple-300">
-                  deliriumstudio@mirrornet.net
+                <a href="mailto:support@mirrornet.net" className="text-purple-400 hover:text-purple-300">
+                  support@mirrornet.net
                 </a>
                 <br />
                 <br />
                 For GDPR-related inquiries, you may also contact our Data Protection Officer at:
                 <br />
-                <a href="mailto:deliriumstudio@mirrornet.net" className="text-purple-400 hover:text-purple-300">
-                  deliriumstudio@mirrornet.net
+                <a href="mailto:support@mirrornet.net" className="text-purple-400 hover:text-purple-300">
+                  support@mirrornet.net
                 </a>
               </p>
             </section>

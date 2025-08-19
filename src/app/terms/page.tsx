@@ -123,8 +123,8 @@ export default function TermsOfService() {
               <p>
                 If you have any questions about these Terms of Service, please contact us at:
                 <br />
-                <a href="mailto:deliriumstudio@mirrornet.net" className="text-purple-400 hover:text-purple-300">
-                  deliriumstudio@mirrornet.net
+                <a href="mailto:support@mirrornet.net" className="text-purple-400 hover:text-purple-300">
+                  support@mirrornet.net
                 </a>
               </p>
             </section>

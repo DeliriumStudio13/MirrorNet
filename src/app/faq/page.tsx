@@ -133,7 +133,7 @@ export default function FAQPage() {
               Can't find the answer you're looking for? We're here to help.
             </p>
             <a
-              href="mailto:deliriumstudio@mirrornet.net"
+              href="mailto:support@mirrornet.net"
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105"
             >
               Contact Support

@@ -330,7 +330,7 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 <li><Link href="/terms" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><a href="mailto:deliriumstudio@mirrornet.net" className="text-gray-300 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="mailto:support@mirrornet.net" className="text-gray-300 hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
