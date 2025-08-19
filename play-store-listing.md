@@ -56,7 +56,7 @@ Get early access at https://mirrornet.net
 
 ## Contact Information
 - **Website**: https://mirrornet.net
-- **Email**: deliriumstudio@mirrornet.net  
+- **Email**: support@mirrornet.net  
 - **Privacy Policy**: https://mirrornet.net/privacy
 - **Terms of Service**: https://mirrornet.net/terms
 
