@@ -84,61 +84,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Handle Stripe customer
-    let stripeCustomerId = userData.stripeCustomerId;
-    console.log('Existing Stripe customer ID:', stripeCustomerId);
-
-    // If we have a stripeCustomerId, verify it exists in Stripe
-    if (stripeCustomerId) {
-      try {
-        await stripe.customers.retrieve(stripeCustomerId);
-        console.log('Verified existing Stripe customer:', stripeCustomerId);
-      } catch (error) {
-        if (error.code === 'resource_missing') {
-          console.log('Stored Stripe customer not found, creating new one');
-          stripeCustomerId = null; // Reset so we create a new one
-        } else {
-          throw error; // Re-throw if it's a different error
-        }
-      }
-    }
-
-    // Create new Stripe customer if needed
-    if (!stripeCustomerId) {
-      console.log('Creating new Stripe customer...');
-      try {
-        const customer = await stripe.customers.create({
-          email: userData.email,
-          metadata: {
-            userId: userId
-          }
-        });
-        stripeCustomerId = customer.id;
-        console.log('Created new Stripe customer:', stripeCustomerId);
-
-        // Update user with new Stripe customer ID
-        await adminDb.collection('users').doc(userId).update({
-          stripeCustomerId: stripeCustomerId
-        });
-        console.log('Updated user with new Stripe customer ID');
-      } catch (error) {
-        console.error('Error creating Stripe customer:', error);
-        return new NextResponse(
-          JSON.stringify({ 
-            error: 'Failed to create Stripe customer',
-            details: error.message 
-          }),
-          {
-            status: 500,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-      }
-    }
-
-    // 5. Create checkout session
+    // 4. Create checkout session (customer will be created after payment validation)
     console.log('Creating Stripe checkout session...');
     if (!PREMIUM_PRICE_ID) {
       console.error('STRIPE_PREMIUM_PRICE_ID not configured');
@@ -169,7 +115,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const session = await stripe.checkout.sessions.create({
-        customer: stripeCustomerId,
+        customer_email: userData.email,  // Let Stripe create customer after payment validation
         payment_method_types: ['card'],
         line_items: [
           {
