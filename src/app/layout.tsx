@@ -93,46 +93,7 @@ export default function RootLayout({
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
-        {/* Nuclear option: Runtime favicon injection with timestamp */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                // Remove any existing favicons aggressively
-                var links = document.querySelectorAll('link[rel*="icon"]');
-                links.forEach(function(link) { link.remove(); });
-                
-                // Add our favicon with maximum priority and current timestamp
-                var timestamp = Date.now();
-                var favicon = document.createElement('link');
-                favicon.rel = 'icon';
-                favicon.type = 'image/x-icon';
-                favicon.href = '/favicon.ico?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
-                document.head.insertBefore(favicon, document.head.firstChild);
-                
-                // Add PNG version with timestamp
-                var pngIcon = document.createElement('link');
-                pngIcon.rel = 'icon';
-                pngIcon.type = 'image/png';
-                pngIcon.sizes = '32x32';
-                pngIcon.href = '/mirrornet-logo.png?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
-                document.head.insertBefore(pngIcon, document.head.firstChild);
-                
-                // Force page to reload favicon after 1 second
-                setTimeout(function() {
-                  var head = document.head;
-                  var links = head.querySelectorAll('link[rel*="icon"]');
-                  links.forEach(function(link) {
-                    var newLink = link.cloneNode();
-                    newLink.href = link.href + '&reload=' + Date.now();
-                    head.insertBefore(newLink, link);
-                    head.removeChild(link);
-                  });
-                }, 1000);
-              })();
-            `,
-          }}
-        />
+
       </head>
       <body className={inter.className}>
         <ClientProviders>
