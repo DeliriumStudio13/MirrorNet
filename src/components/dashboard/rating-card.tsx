@@ -67,6 +67,12 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
   const avgScore = stats.avgScore || 0;
   const isAttractionForStandard = circleId === 'attraction' && !isPremium;
   
+  // Check if this is a standard circle with insufficient members for results visibility
+  const isStandardCircleWithInsufficientMembers = 
+    ['friends', 'work', 'general'].includes(circleId) && 
+    memberCount !== null && 
+    memberCount < 4;
+  
 
 
   return (
@@ -98,7 +104,7 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
         </div>
         <div 
           className={`rounded-full h-12 w-12 flex items-center justify-center shadow-lg transition-all duration-300 ${
-            isAttractionForStandard
+            isAttractionForStandard || isStandardCircleWithInsufficientMembers
               ? 'bg-gray-700 text-gray-300'
               : avgScore === 0 
                 ? 'bg-gray-700 text-gray-300'
@@ -107,37 +113,37 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
                   : avgScore < 7
                     ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white'
                     : 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-          } ${isAttractionForStandard ? 'blur-sm' : ''}`}
+          } ${isAttractionForStandard || isStandardCircleWithInsufficientMembers ? 'blur-sm' : ''}`}
         >
           <span className="font-bold text-lg drop-shadow-md">
-            {isAttractionForStandard ? '?' : avgScore.toFixed(1)}
+            {isAttractionForStandard || isStandardCircleWithInsufficientMembers ? '?' : avgScore.toFixed(1)}
           </span>
         </div>
       </div>
 
       {/* Traits */}
-      <div className={`px-5 pb-5 space-y-4 flex-grow ${isAttractionForStandard ? 'blur-sm' : ''}`}>
+      <div className={`px-5 pb-5 space-y-4 flex-grow ${isAttractionForStandard || isStandardCircleWithInsufficientMembers ? 'blur-sm' : ''}`}>
         {traits.map(trait => {
           const traitStats = stats.traits[trait.id] || { avg: 0 };
-          const displayValue = isAttractionForStandard ? 0 : traitStats.avg;
+          const displayValue = (isAttractionForStandard || isStandardCircleWithInsufficientMembers) ? 0 : traitStats.avg;
           return (
             <div key={trait.id}>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-400">{trait.name}</span>
                 <span className={`font-medium ${
-                  isAttractionForStandard || displayValue === 0
+                  isAttractionForStandard || isStandardCircleWithInsufficientMembers || displayValue === 0
                     ? 'text-gray-300'
                     : displayValue < 4
                       ? 'text-red-400'
                       : displayValue < 7
                         ? 'text-yellow-400'
                         : 'text-green-400'
-                }`}>{isAttractionForStandard ? '?' : displayValue.toFixed(1)}</span>
+                }`}>{isAttractionForStandard || isStandardCircleWithInsufficientMembers ? '?' : displayValue.toFixed(1)}</span>
               </div>
               <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
-                    isAttractionForStandard || displayValue === 0
+                    isAttractionForStandard || isStandardCircleWithInsufficientMembers || displayValue === 0
                       ? 'bg-gray-700'
                       : displayValue < 4
                         ? 'bg-gradient-to-r from-red-600 to-red-400'
@@ -145,7 +151,7 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
                           ? 'bg-gradient-to-r from-yellow-600 to-yellow-400'
                           : 'bg-gradient-to-r from-green-600 to-green-400'
                   }`}
-                  style={{ width: `${isAttractionForStandard ? 0 : (displayValue / 10) * 100}%` }}
+                  style={{ width: `${isAttractionForStandard || isStandardCircleWithInsufficientMembers ? 0 : (displayValue / 10) * 100}%` }}
                 >
                   <div className="w-full h-full bg-[rgba(255,255,255,0.1)]" />
                 </div>
@@ -154,6 +160,26 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
           );
         })}
       </div>
+
+      {/* Minimum Members Message Overlay - Only covers stats/traits, leaves ALL buttons accessible */}
+      {isStandardCircleWithInsufficientMembers && (
+        <div className="absolute top-0 left-0 right-0 bottom-32 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center px-4">
+            <div className="bg-yellow-500/10 rounded-full p-3 mb-3 w-12 h-12 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-base font-semibold text-white mb-1">Need More Members</h3>
+            <p className="text-sm text-gray-300 mb-1">
+              Add {4 - (memberCount || 0)} more {4 - (memberCount || 0) === 1 ? 'member' : 'members'}
+            </p>
+            <p className="text-xs text-gray-400">
+              All buttons work normally
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="border-t border-gray-700">

@@ -308,12 +308,12 @@ export default function CircleDetailsPage() {
         </div>
 
         {/* Monthly Scores Graph */}
-        <div className="bg-[#1a1b1e] rounded-xl border border-[#2a2b2e] overflow-hidden">
+        <div className="bg-[#1a1b1e] rounded-xl border border-[#2a2b2e] overflow-hidden relative">
           <div className="p-4 border-b border-[#2a2b2e]">
             <h2 className="text-xl font-semibold text-white">Monthly Scores</h2>
           </div>
           
-          <div className="p-6">
+          <div className={`p-6 ${['friends', 'work', 'general'].includes(circleId) && (members.length + 1) < 4 ? 'blur-sm' : ''}`}>
             {monthlyScores.length === 0 || monthlyScores.every(s => s.score === 0) ? (
               <div className="text-center py-12 text-gray-400">
                 <div className="mb-2">📊</div>
@@ -365,6 +365,26 @@ export default function CircleDetailsPage() {
               </div>
             )}
           </div>
+          
+          {/* Monthly Scores Minimum Members Overlay */}
+          {['friends', 'work', 'general'].includes(circleId) && (members.length + 1) < 4 && (
+            <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-center px-4">
+                <div className="bg-yellow-500/10 rounded-full p-3 mb-3 w-12 h-12 flex items-center justify-center mx-auto">
+                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-white mb-1">Need More Members</h3>
+                <p className="text-sm text-gray-300 mb-1">
+                  Add {4 - (members.length + 1)} more {4 - (members.length + 1) === 1 ? 'member' : 'members'} to view scores
+                </p>
+                <p className="text-xs text-gray-400">
+                  Monthly score history will be visible
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
