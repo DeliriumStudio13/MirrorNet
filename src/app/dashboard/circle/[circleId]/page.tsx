@@ -379,9 +379,7 @@ export default function CircleDetailsPage() {
                 <p className="text-sm text-gray-300 mb-1">
                   Add {4 - (members.length + 1)} more {4 - (members.length + 1) === 1 ? 'member' : 'members'} to view scores
                 </p>
-                <p className="text-xs text-gray-400">
-                  Monthly score history will be visible
-                </p>
+
               </div>
             </div>
           )}

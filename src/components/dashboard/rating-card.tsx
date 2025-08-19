@@ -174,9 +174,7 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
             <p className="text-sm text-gray-300 mb-1">
               Add {4 - (memberCount || 0)} more {4 - (memberCount || 0) === 1 ? 'member' : 'members'}
             </p>
-            <p className="text-xs text-gray-400">
-              All buttons work normally
-            </p>
+
           </div>
         </div>
       )}
