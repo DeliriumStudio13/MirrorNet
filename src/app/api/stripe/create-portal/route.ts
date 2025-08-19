@@ -100,7 +100,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Handle Stripe customer
+    // 4. Verify user has premium status (should have a customer ID)
+    if (!userData.isPremium) {
+      console.error('User is not premium, cannot access billing portal:', userId);
+      return new NextResponse(
+        JSON.stringify({ error: 'Premium subscription required to access billing portal' }),
+        {
+          status: 403,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // 5. Handle Stripe customer
     let stripeCustomerId = userData.stripeCustomerId;
     console.log('Existing Stripe customer ID:', stripeCustomerId);
 
@@ -156,7 +171,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Create portal session
+    // 6. Create portal session
     console.log('Creating Stripe portal session...');
     try {
       const portalSession = await stripe.billingPortal.sessions.create({

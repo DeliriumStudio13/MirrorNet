@@ -108,31 +108,56 @@ const handleCheckoutCompleted = withPerformanceTracking(
     try {
       logInfo('Processing checkout completed', { sessionId: session.id });
       
+      // Stripe has automatically created a customer - get the customer ID
+      const stripeCustomerId = session.customer as string;
+      console.log('Checkout completed for Stripe customer:', stripeCustomerId);
+      
       // Get userId from metadata
-      const userId = session.metadata?.userId;
+      let userId = session.metadata?.userId;
+      
       if (!userId) {
-        trackError(new Error('No userId found in session metadata'), {
-          action: 'checkout_completed',
-          additionalData: { sessionId: session.id }
-        });
-        // Try to get user by customer ID
-        const customer = await stripe.customers.retrieve(session.customer as string);
-        if (customer.metadata?.userId) {
-          await updateUserPremiumStatus(customer.metadata.userId, session.customer as string);
+        // If no userId in session metadata, try to find user by email
+        console.log('No userId in session metadata, looking up user by email...');
+        
+        // Get customer email from Stripe (since we used customer_email)
+        const customer = await stripe.customers.retrieve(stripeCustomerId);
+        const customerEmail = customer.email;
+        
+        if (customerEmail) {
+          // Find user in Firestore by email
+          const usersSnapshot = await adminDb.collection('users')
+            .where('email', '==', customerEmail)
+            .limit(1)
+            .get();
+          
+          if (!usersSnapshot.empty) {
+            userId = usersSnapshot.docs[0].id;
+            console.log('Found user by email:', userId);
+          }
         }
-        return;
+        
+        if (!userId) {
+          trackError(new Error('Could not find userId for checkout session'), {
+            action: 'checkout_completed',
+            additionalData: { sessionId: session.id, customerEmail }
+          });
+          return;
+        }
       }
 
-      await updateUserPremiumStatus(userId, session.customer as string);
+      // Update user with premium status and store the new customer ID
+      await updateUserPremiumStatus(userId, stripeCustomerId);
       
       // Track successful business event
       trackBusinessEvent('premium_subscription_started', {
         userId,
         sessionId: session.id,
-        customerId: session.customer,
+        customerId: stripeCustomerId,
         amount: session.amount_total,
         currency: session.currency
       });
+      
+      console.log(`Successfully processed checkout for user ${userId}, customer ${stripeCustomerId}`);
       
     } catch (error) {
       trackError(error as Error, {
