@@ -74,48 +74,61 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="canonical" href="https://mirrornet.net" />
-        {/* NUCLEAR FAVICON OVERRIDE - Multiple declarations to force Vercel compliance */}
-        <link rel="icon" href="/favicon.ico?v=5&t=1735059600&force=true" type="image/x-icon" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico?v=5&t=1735059600&force=true" type="image/x-icon" />
-        <link rel="icon" href="/favicon.ico?v=5&t=1735059600&force=true" type="image/vnd.microsoft.icon" />
-        <link rel="icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" type="image/png" sizes="16x16" />
-        <link rel="icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" type="image/png" sizes="48x48" />
-        <link rel="icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" type="image/png" sizes="64x64" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" sizes="180x180" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" sizes="152x152" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" sizes="120x120" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=5&t=1735059600&force=true" sizes="76x76" />
-        <meta name="msapplication-TileImage" content="/mirrornet-logo.png?v=5&t=1735059600&force=true" />
+        {/* SUPER NUCLEAR FAVICON OVERRIDE - Multiple declarations with aggressive cache busting */}
+        <link rel="icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/x-icon" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/x-icon" />
+        <link rel="icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="48x48" />
+        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="64x64" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="180x180" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="152x152" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="120x120" />
+        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="76x76" />
+        <meta name="msapplication-TileImage" content="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" />
         <meta name="msapplication-TileColor" content="#8B5CF6" />
         <meta name="theme-color" content="#8B5CF6" />
         {/* Force refresh favicon cache */}
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
-        {/* Nuclear option: Runtime favicon injection */}
+        {/* Nuclear option: Runtime favicon injection with timestamp */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Remove any existing favicons
+                // Remove any existing favicons aggressively
                 var links = document.querySelectorAll('link[rel*="icon"]');
                 links.forEach(function(link) { link.remove(); });
                 
-                // Add our favicon with maximum priority
+                // Add our favicon with maximum priority and current timestamp
+                var timestamp = Date.now();
                 var favicon = document.createElement('link');
                 favicon.rel = 'icon';
                 favicon.type = 'image/x-icon';
-                favicon.href = '/favicon.ico?v=5&t=' + Date.now() + '&force=true';
+                favicon.href = '/favicon.ico?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
                 document.head.insertBefore(favicon, document.head.firstChild);
                 
-                // Add PNG version
+                // Add PNG version with timestamp
                 var pngIcon = document.createElement('link');
                 pngIcon.rel = 'icon';
                 pngIcon.type = 'image/png';
                 pngIcon.sizes = '32x32';
-                pngIcon.href = '/mirrornet-logo.png?v=5&t=' + Date.now() + '&force=true';
+                pngIcon.href = '/mirrornet-logo.png?v=10&t=' + timestamp + '&force=true&bust=cache&nuclear=true';
                 document.head.insertBefore(pngIcon, document.head.firstChild);
+                
+                // Force page to reload favicon after 1 second
+                setTimeout(function() {
+                  var head = document.head;
+                  var links = head.querySelectorAll('link[rel*="icon"]');
+                  links.forEach(function(link) {
+                    var newLink = link.cloneNode();
+                    newLink.href = link.href + '&reload=' + Date.now();
+                    head.insertBefore(newLink, link);
+                    head.removeChild(link);
+                  });
+                }, 1000);
               })();
             `,
           }}
