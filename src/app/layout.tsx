@@ -13,17 +13,34 @@ export const metadata: Metadata = {
   authors: [{ name: 'MirrorNet™' }],
   creator: 'MirrorNet™',
   publisher: 'MirrorNet™',
-  icons: {
-    icon: [
-      { url: '/favicon.ico', type: 'image/x-icon' },
-      { url: '/mirrornet-logo.png', sizes: '32x32', type: 'image/png' },
-      { url: '/mirrornet-logo.png', sizes: '16x16', type: 'image/png' },
-    ],
-    shortcut: '/favicon.ico',
-    apple: '/mirrornet-logo.png',
-  },
+  // Remove icons from metadata to prevent conflicts with manual head links
   manifest: '/manifest.json',
-
+  metadataBase: new URL('https://mirrornet.net'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'MirrorNet™ - Personal Growth Through Feedback',
+    description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
+    url: 'https://mirrornet.net',
+    siteName: 'MirrorNet™',
+    images: [
+      {
+        url: '/mirrornet-logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'MirrorNet™ Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MirrorNet™ - Personal Growth Through Feedback',
+    description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
+    images: ['/mirrornet-logo.png'],
+  },
   other: {
     'cache-control': 'no-cache, no-store, must-revalidate',
     'pragma': 'no-cache',
@@ -49,6 +66,14 @@ export default function RootLayout({
         <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
         <meta name="pragma" content="no-cache" />
         <meta name="expires" content="0" />
+        {/* Enhanced SEO and Social Media Meta Tags */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
+        <meta name="application-name" content="MirrorNet™" />
+        <meta name="apple-mobile-web-app-title" content="MirrorNet™" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="canonical" href="https://mirrornet.net" />
         <link rel="icon" href="/favicon.ico?v=4&t=1735037200" type="image/x-icon" />
         <link rel="shortcut icon" href="/favicon.ico?v=4&t=1735037200" type="image/x-icon" />
         <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=4&t=1735037200" />
