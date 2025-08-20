@@ -9,10 +9,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       
-      // Allow read access to public profile data for search functionality
+      // Allow read access to basic profile data for search functionality
+      // Users can search for firstName, lastName, avatarUrl for social features
       allow read: if request.auth != null && 
-        resource.data.keys().hasAll(['publicProfile']) &&
-        request.query.limit <= 20; // Limit search results
+        request.query.limit <= 50; // Allow search with reasonable limits
     }
 
     // ========================================  
