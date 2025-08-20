@@ -13,9 +13,15 @@ export const metadata: Metadata = {
   authors: [{ name: 'MirrorNet™' }],
   creator: 'MirrorNet™',
   publisher: 'MirrorNet™',
-  // Remove icons from metadata to prevent conflicts with manual head links
   manifest: '/manifest.json',
   metadataBase: new URL('https://mirrornet.net'),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/mirrornet-logo.png', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: '/mirrornet-logo.png',
+  },
   alternates: {
     canonical: '/',
   },
@@ -26,7 +32,7 @@ export const metadata: Metadata = {
     siteName: 'MirrorNet™',
     images: [
       {
-        url: '/mirrornet-logo.png?v=10',
+        url: '/mirrornet-logo.png',
         width: 1200,
         height: 630,
         alt: 'MirrorNet™ Logo',
@@ -39,12 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'MirrorNet™ - Personal Growth Through Feedback',
     description: 'The honest, anonymous feedback platform for personal growth and stronger relationships',
-    images: ['/mirrornet-logo.png?v=10'],
-  },
-  other: {
-    'cache-control': 'no-cache, no-store, must-revalidate',
-    'pragma': 'no-cache',
-    'expires': '0',
+    images: ['/mirrornet-logo.png'],
   },
 };
 
@@ -63,58 +64,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
-        <meta name="pragma" content="no-cache" />
-        <meta name="expires" content="0" />
-        {/* Enhanced SEO and Social Media Meta Tags */}
+        {/* Enhanced SEO and PWA Meta Tags */}
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow" />
         <meta name="application-name" content="MirrorNet™" />
         <meta name="apple-mobile-web-app-title" content="MirrorNet™" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="canonical" href="https://mirrornet.net" />
-        {/* SUPER NUCLEAR FAVICON OVERRIDE - Multiple declarations with aggressive cache busting */}
-        <link rel="icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/x-icon" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/x-icon" />
-        <link rel="icon" href="/favicon.ico?v=10&t=1735090000&force=true&bust=cache" type="image/vnd.microsoft.icon" />
-        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="16x16" />
-        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="48x48" />
-        <link rel="icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" type="image/png" sizes="64x64" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="180x180" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="152x152" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="120x120" />
-        <link rel="apple-touch-icon" href="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" sizes="76x76" />
-        <meta name="msapplication-TileImage" content="/mirrornet-logo.png?v=10&t=1735090000&force=true&bust=cache" />
         <meta name="msapplication-TileColor" content="#8B5CF6" />
         <meta name="theme-color" content="#8B5CF6" />
-        {/* Force refresh favicon cache */}
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
-        {/* Gentle favicon injection - less aggressive approach */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                // Only run after page is loaded
-                window.addEventListener('load', function() {
-                  // Check if our favicon is already loaded
-                  var currentFavicon = document.querySelector('link[rel="icon"][href*="favicon.ico"]');
-                  if (!currentFavicon || !currentFavicon.href.includes('v=10')) {
-                    // Add our favicon gently
-                    var favicon = document.createElement('link');
-                    favicon.rel = 'icon';
-                    favicon.type = 'image/x-icon';
-                    favicon.href = '/favicon.ico?v=10&t=${Date.now()}&force=refresh';
-                    document.head.appendChild(favicon);
-                  }
-                });
-              })();
-            `,
-          }}
-        />
       </head>
       <body className={inter.className}>
         <ClientProviders>
