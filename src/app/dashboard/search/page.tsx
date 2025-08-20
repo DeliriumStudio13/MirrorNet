@@ -259,12 +259,16 @@ export default function SearchPage() {
       const usersRef = collection(db, 'users');
       const lowerTerm = searchTerm.toLowerCase();
       
+      // For efficiency, limit each query to reasonable number for search
+      const SEARCH_LIMIT = 50; // Reasonable limit for search queries
+      
       // Query 1: Search by first name
       const firstNameQuery = query(
         usersRef,
         where('firstName_lowercase', '>=', lowerTerm),
         where('firstName_lowercase', '<=', lowerTerm + '\uf8ff'),
-        orderBy('firstName_lowercase')
+        orderBy('firstName_lowercase'),
+        limit(SEARCH_LIMIT)
       );
       
       // Query 2: Search by last name  
@@ -272,7 +276,8 @@ export default function SearchPage() {
         usersRef,
         where('lastName_lowercase', '>=', lowerTerm),
         where('lastName_lowercase', '<=', lowerTerm + '\uf8ff'),
-        orderBy('lastName_lowercase')
+        orderBy('lastName_lowercase'),
+        limit(SEARCH_LIMIT)
       );
       
       // Execute both queries
