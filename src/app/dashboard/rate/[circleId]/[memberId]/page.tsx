@@ -302,16 +302,22 @@ export default function RatingPage() {
                   {scores[trait.id] || 1}
                 </span>
               </div>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                step="1"
-                value={scores[trait.id] || 1}
-                onChange={(e) => handleScoreChange(trait.id, e.target.value)}
-                className="w-full accent-blue-500 mb-2"
-              />
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="py-2">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={scores[trait.id] || 1}
+                  onChange={(e) => handleScoreChange(trait.id, e.target.value)}
+                  className="w-full h-3 accent-blue-500 mb-2 cursor-pointer"
+                  style={{
+                    WebkitAppearance: 'none',
+                    background: 'transparent'
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-sm text-gray-400 px-1">
                 <span>1</span>
                 <span>5</span>
                 <span>10</span>

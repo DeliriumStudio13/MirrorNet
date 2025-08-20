@@ -161,9 +161,9 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
         })}
       </div>
 
-      {/* Minimum Members Message Overlay - Only covers stats/traits, leaves ALL buttons accessible */}
+      {/* Minimum Members Message Overlay - Only covers stats/traits area, leaves circle name AND buttons accessible */}
       {isStandardCircleWithInsufficientMembers && (
-        <div className="absolute top-0 left-0 right-0 bottom-32 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center">
+        <div className="absolute top-24 left-0 right-0 bottom-32 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center">
           <div className="text-center px-4">
             <div className="bg-yellow-500/10 rounded-full p-3 mb-3 w-12 h-12 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +174,6 @@ export function RatingCard({ circleId, stats, isPremium }: RatingCardProps) {
             <p className="text-sm text-gray-300 mb-1">
               Add {4 - (memberCount || 0)} more {4 - (memberCount || 0) === 1 ? 'member' : 'members'}
             </p>
-
           </div>
         </div>
       )}

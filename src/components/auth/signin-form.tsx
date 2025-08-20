@@ -126,7 +126,7 @@ export function SignInForm() {
           id="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
+          className="w-full h-12 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
           placeholder={isResetMode ? "Enter your email to reset password" : "Enter your email"}
           required
         />
@@ -143,7 +143,7 @@ export function SignInForm() {
             id="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
+            className="w-full h-12 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
             placeholder="Enter your password"
             required
           />

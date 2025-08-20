@@ -132,7 +132,7 @@ export default function SearchPage() {
     fetchSuggestedUsers();
   }, [user?.uid]);
 
-  // Live search for preview results
+  // Live search for preview results - searches both first name AND last name
   const performLiveSearch = useCallback(async (term: string) => {
     if (!term.trim() || !user) {
       setPreviewResults([]);
@@ -143,18 +143,53 @@ export default function SearchPage() {
     setPreviewLoading(true);
     try {
       const usersRef = collection(db, 'users');
-      const q = query(
+      const lowerTerm = term.toLowerCase();
+      
+      // Query 1: Search by first name
+      const firstNameQuery = query(
         usersRef,
-        where('firstName_lowercase', '>=', term.toLowerCase()),
-        where('firstName_lowercase', '<=', term.toLowerCase() + '\uf8ff'),
+        where('firstName_lowercase', '>=', lowerTerm),
+        where('firstName_lowercase', '<=', lowerTerm + '\uf8ff'),
         orderBy('firstName_lowercase'),
         limit(PREVIEW_RESULTS_LIMIT)
       );
       
-      const snapshot = await getDocs(q);
-      const searchResults = snapshot.docs
-        .map(doc => ({ ...doc.data(), uid: doc.id } as SearchResult))
-        .filter(result => result.uid !== user.uid);
+      // Query 2: Search by last name
+      const lastNameQuery = query(
+        usersRef,
+        where('lastName_lowercase', '>=', lowerTerm),
+        where('lastName_lowercase', '<=', lowerTerm + '\uf8ff'),
+        orderBy('lastName_lowercase'),
+        limit(PREVIEW_RESULTS_LIMIT)
+      );
+      
+      // Execute both queries
+      const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
+        getDocs(firstNameQuery),
+        getDocs(lastNameQuery)
+      ]);
+      
+      // Combine results and remove duplicates
+      const resultsMap = new Map<string, SearchResult>();
+      
+      // Add first name results
+      firstNameSnapshot.docs.forEach(doc => {
+        if (doc.id !== user.uid) {
+          resultsMap.set(doc.id, { ...doc.data(), uid: doc.id } as SearchResult);
+        }
+      });
+      
+      // Add last name results (will overwrite duplicates, which is fine)
+      lastNameSnapshot.docs.forEach(doc => {
+        if (doc.id !== user.uid) {
+          resultsMap.set(doc.id, { ...doc.data(), uid: doc.id } as SearchResult);
+        }
+      });
+      
+      // Convert to array and sort alphabetically by first name
+      const searchResults = Array.from(resultsMap.values())
+        .sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''))
+        .slice(0, PREVIEW_RESULTS_LIMIT);
 
       setPreviewResults(searchResults);
       setShowPreview(searchResults.length > 0);
@@ -212,7 +247,7 @@ export default function SearchPage() {
     await loadExistingInvites([selectedUser]);
   };
 
-  // Full search with pagination
+  // Full search with pagination - searches both first name AND last name
   const handleSearch = async (page = 1) => {
     if (!searchTerm.trim() || !user) return;
     
@@ -222,51 +257,56 @@ export default function SearchPage() {
     
     try {
       const usersRef = collection(db, 'users');
-      let q = query(
-        usersRef,
-        where('firstName_lowercase', '>=', searchTerm.toLowerCase()),
-        where('firstName_lowercase', '<=', searchTerm.toLowerCase() + '\uf8ff'),
-        orderBy('firstName_lowercase'),
-        limit(RESULTS_PER_PAGE)
-      );
-
-      // For pagination, we need to get the starting point
-      if (page > 1) {
-        const startAtIndex = (page - 1) * RESULTS_PER_PAGE;
-        const prevQuery = query(
-          usersRef,
-          where('firstName_lowercase', '>=', searchTerm.toLowerCase()),
-          where('firstName_lowercase', '<=', searchTerm.toLowerCase() + '\uf8ff'),
-          orderBy('firstName_lowercase'),
-          limit(startAtIndex)
-        );
-        const prevSnapshot = await getDocs(prevQuery);
-        if (prevSnapshot.docs.length > 0) {
-          const lastDoc = prevSnapshot.docs[prevSnapshot.docs.length - 1];
-          q = query(
-            usersRef,
-            where('firstName_lowercase', '>=', searchTerm.toLowerCase()),
-            where('firstName_lowercase', '<=', searchTerm.toLowerCase() + '\uf8ff'),
-            orderBy('firstName_lowercase'),
-            startAfter(lastDoc),
-            limit(RESULTS_PER_PAGE)
-          );
-        }
-      }
+      const lowerTerm = searchTerm.toLowerCase();
       
-      const snapshot = await getDocs(q);
-      const searchResults = snapshot.docs
-        .map(doc => ({ ...doc.data(), uid: doc.id } as SearchResult))
-        .filter(result => result.uid !== user.uid);
-
-      // Get total count for pagination
-      const countQuery = query(
+      // Query 1: Search by first name
+      const firstNameQuery = query(
         usersRef,
-        where('firstName_lowercase', '>=', searchTerm.toLowerCase()),
-        where('firstName_lowercase', '<=', searchTerm.toLowerCase() + '\uf8ff')
+        where('firstName_lowercase', '>=', lowerTerm),
+        where('firstName_lowercase', '<=', lowerTerm + '\uf8ff'),
+        orderBy('firstName_lowercase')
       );
-      const countSnapshot = await getDocs(countQuery);
-      const totalCount = countSnapshot.docs.filter(doc => doc.id !== user.uid).length;
+      
+      // Query 2: Search by last name  
+      const lastNameQuery = query(
+        usersRef,
+        where('lastName_lowercase', '>=', lowerTerm),
+        where('lastName_lowercase', '<=', lowerTerm + '\uf8ff'),
+        orderBy('lastName_lowercase')
+      );
+      
+      // Execute both queries
+      const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
+        getDocs(firstNameQuery),
+        getDocs(lastNameQuery)
+      ]);
+      
+      // Combine results and remove duplicates
+      const resultsMap = new Map<string, SearchResult>();
+      
+      // Add first name results
+      firstNameSnapshot.docs.forEach(doc => {
+        if (doc.id !== user.uid) {
+          resultsMap.set(doc.id, { ...doc.data(), uid: doc.id } as SearchResult);
+        }
+      });
+      
+      // Add last name results (will overwrite duplicates, which is fine)
+      lastNameSnapshot.docs.forEach(doc => {
+        if (doc.id !== user.uid) {
+          resultsMap.set(doc.id, { ...doc.data(), uid: doc.id } as SearchResult);
+        }
+      });
+      
+      // Convert to array and sort alphabetically by first name
+      const allResults = Array.from(resultsMap.values())
+        .sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+      
+      // Handle pagination manually since we combined results
+      const totalCount = allResults.length;
+      const startIndex = (page - 1) * RESULTS_PER_PAGE;
+      const endIndex = startIndex + RESULTS_PER_PAGE;
+      const searchResults = allResults.slice(startIndex, endIndex);
 
       // Check for existing invitations
       await loadExistingInvites(searchResults);
@@ -445,7 +485,7 @@ export default function SearchPage() {
                         <button
                           onClick={() => handleInvite(suggestedUsers[currentSuggestedIndex].uid)}
                           disabled={inviting[suggestedUsers[currentSuggestedIndex].uid]}
-                          className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+                          className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white px-6 py-3 min-h-[44px] rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
                         >
                           {inviting[suggestedUsers[currentSuggestedIndex].uid] ? (
                             <>
@@ -502,7 +542,7 @@ export default function SearchPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 onFocus={() => searchTerm && !hasSearched && setShowPreview(true)}
                 onBlur={() => setTimeout(() => setShowPreview(false), 150)}
-                placeholder="Search by name..."
+                placeholder="Search by first or last name..."
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               
@@ -555,7 +595,7 @@ export default function SearchPage() {
             <button
               onClick={() => handleSearch(1)}
               disabled={loading}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-500 text-white px-6 py-3 min-h-[44px] rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Searching...' : 'Search'}
             </button>
@@ -621,7 +661,7 @@ export default function SearchPage() {
                     <button
                       onClick={() => handleInvite(result.uid)}
                       disabled={inviting[result.uid]}
-                      className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-4 w-full bg-blue-500 text-white py-3 min-h-[44px] rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {inviting[result.uid] ? 'Sending Invites...' : 'Send Invites'}
                     </button>
@@ -636,7 +676,7 @@ export default function SearchPage() {
                 <button
                   onClick={() => handleSearch(currentPage - 1)}
                   disabled={currentPage === 1 || loading}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-3 min-h-[44px] bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -657,7 +697,7 @@ export default function SearchPage() {
                         key={page}
                         onClick={() => handleSearch(page)}
                         disabled={loading}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`px-3 py-3 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
                           page === currentPage
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -672,7 +712,7 @@ export default function SearchPage() {
                 <button
                   onClick={() => handleSearch(currentPage + 1)}
                   disabled={currentPage === Math.ceil(totalResults / RESULTS_PER_PAGE) || loading}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-3 min-h-[44px] bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

@@ -116,7 +116,7 @@ export function SignUpForm() {
             id="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
+            className="w-full h-12 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
             placeholder="Enter your first name"
             required
           />
@@ -132,7 +132,7 @@ export function SignUpForm() {
             id="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full h-10 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
+            className="w-full h-12 px-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm relative z-20"
             placeholder="Enter your last name"
             required
           />
