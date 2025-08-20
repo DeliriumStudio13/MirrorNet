@@ -259,6 +259,8 @@ export default function SearchPage() {
       const usersRef = collection(db, 'users');
       const lowerTerm = searchTerm.toLowerCase();
       
+      console.log('🔍 Full Search Debug:', { searchTerm, lowerTerm, page });
+      
       // For efficiency, limit each query to reasonable number for search
       const SEARCH_LIMIT = 50; // Reasonable limit for search queries
       
@@ -286,6 +288,13 @@ export default function SearchPage() {
         getDocs(lastNameQuery)
       ]);
       
+      console.log('📊 Query Results:', {
+        firstNameCount: firstNameSnapshot.docs.length,
+        lastNameCount: lastNameSnapshot.docs.length,
+        firstNameDocs: firstNameSnapshot.docs.map(d => ({ id: d.id, data: d.data() })),
+        lastNameDocs: lastNameSnapshot.docs.map(d => ({ id: d.id, data: d.data() }))
+      });
+      
       // Combine results and remove duplicates
       const resultsMap = new Map<string, SearchResult>();
       
@@ -307,11 +316,18 @@ export default function SearchPage() {
       const allResults = Array.from(resultsMap.values())
         .sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
       
+      console.log('✅ Final Results:', {
+        allResultsCount: allResults.length,
+        allResults: allResults.map(r => ({ uid: r.uid, firstName: r.firstName, lastName: r.lastName }))
+      });
+      
       // Handle pagination manually since we combined results
       const totalCount = allResults.length;
       const startIndex = (page - 1) * RESULTS_PER_PAGE;
       const endIndex = startIndex + RESULTS_PER_PAGE;
       const searchResults = allResults.slice(startIndex, endIndex);
+
+      console.log('📄 Pagination:', { totalCount, startIndex, endIndex, searchResultsCount: searchResults.length });
 
       // Check for existing invitations
       await loadExistingInvites(searchResults);
@@ -320,7 +336,7 @@ export default function SearchPage() {
       setTotalResults(totalCount);
       setCurrentPage(page);
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
     } finally {
       setLoading(false);
     }
