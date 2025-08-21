@@ -310,12 +310,53 @@ export default function RatingPage() {
                   step="1"
                   value={scores[trait.id] || 1}
                   onChange={(e) => handleScoreChange(trait.id, e.target.value)}
-                  className="w-full h-3 accent-blue-500 mb-2 cursor-pointer"
+                  className="w-full h-3 accent-blue-500 mb-2 cursor-pointer slider-custom"
                   style={{
                     WebkitAppearance: 'none',
-                    background: 'transparent'
+                    background: 'linear-gradient(to right, #374151 0%, #374151 100%)',
+                    borderRadius: '6px',
+                    outline: 'none'
                   }}
                 />
+                <style jsx>{`
+                  .slider-custom::-webkit-slider-track {
+                    width: 100%;
+                    height: 12px;
+                    background: #374151;
+                    border-radius: 6px;
+                    border: none;
+                  }
+                  .slider-custom::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 24px;
+                    height: 24px;
+                    background: #3b82f6;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    border: 2px solid #ffffff;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+                  }
+                  .slider-custom::-webkit-slider-thumb:hover {
+                    background: #2563eb;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                  }
+                  .slider-custom::-moz-range-track {
+                    width: 100%;
+                    height: 12px;
+                    background: #374151;
+                    border-radius: 6px;
+                    border: none;
+                  }
+                  .slider-custom::-moz-range-thumb {
+                    width: 24px;
+                    height: 24px;
+                    background: #3b82f6;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    border: 2px solid #ffffff;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+                  }
+                `}</style>
               </div>
               <div className="flex justify-between text-sm text-gray-400 px-1">
                 <span>1</span>
