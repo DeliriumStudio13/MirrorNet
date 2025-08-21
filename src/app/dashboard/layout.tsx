@@ -223,6 +223,7 @@ export default function DashboardLayout({
               <div className="flex flex-col space-y-1 mb-4">
                 <Link
                   href="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard')
                       ? 'bg-gray-800 text-white'
@@ -234,6 +235,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/search"
+                  onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/search')
                       ? 'bg-gray-800 text-white'
@@ -245,7 +247,10 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/notifications"
-                  onClick={markAsViewed}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    markAsViewed();
+                  }}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors relative ${
                     isActive('/dashboard/notifications')
                       ? 'bg-gray-800 text-white'
@@ -262,6 +267,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/attraction"
+                  onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/attraction')
                       ? 'bg-gray-800 text-white'
@@ -273,6 +279,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/traits-guide"
+                  onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                     isActive('/dashboard/traits-guide')
                       ? 'bg-gray-800 text-white'
@@ -286,6 +293,7 @@ export default function DashboardLayout({
               <div className="border-t border-gray-800 pt-3 space-y-3">
                 <Link
                   href="/dashboard/profile"
+                  onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
                   <Avatar
@@ -298,6 +306,7 @@ export default function DashboardLayout({
                 </Link>
                 <Link
                   href="/dashboard/settings"
+                  onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
                   <Settings className="h-4 w-4" />
@@ -306,6 +315,7 @@ export default function DashboardLayout({
                 {!user.isPremium && (
                   <Link
                     href="/dashboard/premium"
+                    onClick={() => setIsMenuOpen(false)}
                     className="flex items-center space-x-3 px-4 py-3 text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 mx-4 rounded-lg transform hover:scale-105"
                   >
                     <span>Go Premium</span>
