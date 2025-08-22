@@ -1,4 +1,4 @@
-package com.mirrornet.app;
+package net.mirrornet.app;
 
 import com.getcapacitor.BridgeActivity;
 
