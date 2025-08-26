@@ -70,26 +70,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleResetTokens = async () => {
-    if (!user?.uid || !user.isPremium) return;
 
-    setProcessing(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        premiumTokens: 3,
-        tokensResetAt: serverTimestamp()
-      });
-      setSuccess('Premium tokens reset to 3!');
-    } catch (err) {
-      console.error('Error resetting tokens:', err);
-      setError('Failed to reset tokens. Please try again.');
-    } finally {
-      setProcessing(false);
-    }
-  };
 
   // Password change functionality
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -367,24 +348,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Token Reset */}
-            <div className="border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-1">Reset Premium Tokens</h3>
-                  <p className="text-gray-400 text-sm">
-                    Reset your premium tokens back to 3 for testing purposes
-                  </p>
-                </div>
-                <button
-                  onClick={handleResetTokens}
-                  disabled={processing}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {processing ? 'Processing...' : 'Reset Tokens'}
-                </button>
-              </div>
-            </div>
+
           </div>
         </div>
       )}

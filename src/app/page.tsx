@@ -37,16 +37,32 @@ export default function LandingPage() {
 
   const faqData = [
     {
+      question: "How does MirrorNet™ work?",
+      answer: "MirrorNet™ organizes feedback into different 'circles' - Family, Friends, Work, and Attraction. People in your circles rate you on personality traits like kindness, humor, or leadership. All feedback is completely anonymous, so you get honest insights to help you grow."
+    },
+    {
+      question: "What are circles and how do I use them?",
+      answer: "Circles are groups of people who know you in different contexts. You have four circles: Family (relatives), Friends (close friends), Work (colleagues), and Attraction (romantic interests - Premium only). You invite trusted people to each circle, and they provide anonymous feedback about your personality traits."
+    },
+    {
+      question: "How do I get feedback?",
+      answer: "After setting up your circles and inviting people, circle members can rate you on various personality traits using a 1-10 scale. You'll see average scores and insights, but never know who gave which rating - it's completely anonymous."
+    },
+    {
+      question: "What kind of traits can people rate me on?",
+      answer: "We have a comprehensive library of personality traits like communication skills, empathy, leadership, humor, reliability, and creativity. Each circle uses traits relevant to that relationship context, helping you understand how you're perceived in different areas of your life."
+    },
+    {
       question: "How does MirrorNet™ ensure anonymity?",
-      answer: "We use advanced encryption and privacy-by-design principles. Feedback is completely anonymous, and we never store identifying information with responses."
+      answer: "We use advanced encryption and privacy-by-design principles. Feedback is completely anonymous, and we never store identifying information with responses. Even you can't see who gave specific ratings - only the collective insights from your circle."
+    },
+    {
+      question: "How do I invite people to my circles?",
+      answer: "You can invite trusted friends, family, or colleagues who already have MirrorNet™ accounts. They'll need to create an account first before they can be invited to your circles. Go to each circle and use the 'Invite Members' feature."
     },
     {
       question: "What's the difference between Free and Premium?",
       answer: "All basic features are free forever, including Family, Friends, and Work circles. Premium users get exclusive Attraction Circle access, 3 Premium Tokens monthly, Family Goals, early access to new features, and a premium supporter badge."
-    },
-    {
-      question: "How do I invite people to my circles?",
-      answer: "You can invite trusted friends, family, or colleagues who already have MirrorNet™ accounts. They'll need to create an account first before they can be invited to your circles."
     },
     {
       question: "Can I cancel my Premium subscription anytime?",
@@ -106,7 +122,7 @@ export default function LandingPage() {
                   onClick={() => setActiveTab('signup')}
                   className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105"
                 >
-                  Start Free Trial
+                  Join now
                 </button>
                 <button
                   onClick={() => setActiveTab('signin')}

@@ -10,6 +10,7 @@ import { PremiumBadge } from '@/components/ui/premium-badge';
 import { Avatar } from '@/components/ui/avatar';
 import { NotificationPopup } from '@/components/ui/notification-popup';
 import { useNotificationContext } from '@/contexts/notification-context';
+import { useBackButton } from '@/hooks/use-back-button';
 import { Settings, Bell, Search, Home, Heart, BookOpen } from 'lucide-react';
 
 
@@ -23,6 +24,9 @@ export default function DashboardLayout({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // Enable mobile back button handling
+  useBackButton();
 
   const handleSignOut = () => {
     logout();
